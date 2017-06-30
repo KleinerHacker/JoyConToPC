@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using JoyConToPC.Input.Type;
 
-namespace JoyConToPC.Core.Util.Extension
+namespace JoyConToPC.Input.Util.Extension
 {
     internal static class GuidExtensions
     {

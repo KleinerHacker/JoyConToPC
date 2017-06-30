@@ -5,7 +5,9 @@ VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JoyConToPC", "JoyConToPC\JoyConToPC.csproj", "{221E9EFC-4B69-4163-922E-75209A47868D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JoyConToPC.Core", "JoyConToPC.Core\JoyConToPC.Core.csproj", "{E72BDB8D-362D-4F15-A6F2-E02E699B09F8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JoyConToPC.Input", "JoyConToPC.Input\JoyConToPC.Input.csproj", "{E72BDB8D-362D-4F15-A6F2-E02E699B09F8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JoyConToPC.Core", "JoyConToPC.Core\JoyConToPC.Core.csproj", "{887857BE-1AFE-4DF1-8540-641EC439C094}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{E72BDB8D-362D-4F15-A6F2-E02E699B09F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E72BDB8D-362D-4F15-A6F2-E02E699B09F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E72BDB8D-362D-4F15-A6F2-E02E699B09F8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{887857BE-1AFE-4DF1-8540-641EC439C094}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{887857BE-1AFE-4DF1-8540-641EC439C094}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{887857BE-1AFE-4DF1-8540-641EC439C094}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{887857BE-1AFE-4DF1-8540-641EC439C094}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

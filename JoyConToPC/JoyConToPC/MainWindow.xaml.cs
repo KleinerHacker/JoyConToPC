@@ -25,24 +25,20 @@ namespace JoyConToPC
         public MainWindow()
         {
             InitializeComponent();
-            Loaded += OnLoaded;
+            JoyConDriver.Instance.JoyConUpdated += InstanceOnJoyConUpdated;
         }
 
-        private void OnLoaded(object sender, RoutedEventArgs routedEventArgs)
+        private void InstanceOnJoyConUpdated(object sender, JoyConUpdateEventArgs joyConUpdateEventArgs)
         {
-            var joyConList = JoyConFactory.GetAvailableJoyConList();
-            foreach (var joyCon in joyConList)
+            Dispatcher.Invoke(() =>
             {
-                ListView.Items.Add(joyCon);
-                joyCon.Acquire(1, new WindowInteropHelper(this).Handle);
-                Task.Run(() =>
+                ListView.Items.Clear();
+                var joyConList = JoyConDriver.Instance.JoyConList;
+                foreach (var joyCon in joyConList)
                 {
-                    while (true)
-                    {
-                        joyCon.Poll();
-                    }
-                });
-            }
+                    ListView.Items.Add(joyCon);
+                }
+            });
         }
     }
 }
