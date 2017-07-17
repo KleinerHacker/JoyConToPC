@@ -42,9 +42,15 @@ namespace JoyConToPC.Core
 
         private void OnRemoveJoyCon(IJoyCon joyCon)
         {
-            joyCon.StopPolling();
+            if (joyCon.IsPolling)
+            {
+                joyCon.StopPolling();
+            }
             joyCon.DataUpdated -= OnJoyConDataUpdate;
-            joyCon.Unacquire();
+            if (joyCon.IsAcquired)
+            {
+                joyCon.Unacquire();
+            }
         }
 
         private void OnJoyConDataUpdate(object sender, JoyConDataUpdateEventArgs args)

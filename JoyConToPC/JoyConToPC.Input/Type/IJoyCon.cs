@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace JoyConToPC.Input.Type
 {
@@ -19,9 +20,11 @@ namespace JoyConToPC.Input.Type
         void StopPolling();
 
         void SetupLeds(JoyConLed led);
-
         void SetupLeds(JoyConSingleLed firstLed, JoyConSingleLed secondLed,
             JoyConSingleLed thirdLed, JoyConSingleLed fourthLed);
+
+        void Rumble(JoyConRumble rumble);
+        void Rumble(JoyConRumbleInfo rumbleInfo);
     }
 
     public class JoyConDataUpdateEventArgs : EventArgs

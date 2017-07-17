@@ -37,6 +37,8 @@ namespace JoyConToPC.Input.Type
             RightJoyCon.DataUpdated += (sender, args) => DataUpdated?.Invoke(this, args);
         }
 
+        #region Acquiration
+
         public void Acquire(JoyConPlayer player)
         {
             LeftJoyCon.Acquire(player);
@@ -48,6 +50,10 @@ namespace JoyConToPC.Input.Type
             LeftJoyCon.Unacquire();
             RightJoyCon.Unacquire();
         }
+
+        #endregion
+
+        #region Polling
 
         public void StartPolling()
         {
@@ -61,6 +67,10 @@ namespace JoyConToPC.Input.Type
             RightJoyCon.StopPolling();
         }
 
+        #endregion
+
+        #region LED
+
         public void SetupLeds(JoyConLed led)
         {
             LeftJoyCon.SetupLeds(led);
@@ -73,6 +83,44 @@ namespace JoyConToPC.Input.Type
             LeftJoyCon.SetupLeds(firstLed, secondLed, thirdLed, fourthLed);
             RightJoyCon.SetupLeds(firstLed, secondLed, thirdLed, fourthLed);
         }
+
+        #endregion
+
+        #region Rumble
+
+        public void Rumble(JoyConRumble rumble)
+        {
+            LeftJoyCon.Rumble(rumble);
+            RightJoyCon.Rumble(rumble);
+        }
+
+        public void Rumble(JoyConRumbleInfo rumbleInfo)
+        {
+            LeftJoyCon.Rumble(rumbleInfo);
+            RightJoyCon.Rumble(rumbleInfo);
+        }
+
+        public void Rumble(JoyConType type, JoyConRumble rumble)
+        {
+            Rumble(type, new JoyConRumbleInfo(rumble));
+        }
+
+        public void Rumble(JoyConType type, JoyConRumbleInfo rumbleInfo)
+        {
+            switch (type)
+            {
+                case JoyConType.Left:
+                    LeftJoyCon.Rumble(rumbleInfo);
+                    break;
+                case JoyConType.Right:
+                    RightJoyCon.Rumble(rumbleInfo);
+                    break;
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+
+        #endregion
 
         public void Dispose()
         {
@@ -98,7 +146,8 @@ namespace JoyConToPC.Input.Type
         {
             unchecked
             {
-                return ((LeftJoyCon != null ? LeftJoyCon.GetHashCode() : 0) * 397) ^ (RightJoyCon != null ? RightJoyCon.GetHashCode() : 0);
+                return ((LeftJoyCon != null ? LeftJoyCon.GetHashCode() : 0) * 397) ^
+                       (RightJoyCon != null ? RightJoyCon.GetHashCode() : 0);
             }
         }
 

@@ -44,6 +44,8 @@ namespace JoyConToPC.Input.Type
             Type = joyConType.Value;
         }
 
+        #region Acquiration
+
         public void Acquire(JoyConPlayer player)
         {
             //lock (this)
@@ -77,6 +79,10 @@ namespace JoyConToPC.Input.Type
             }
         }
 
+        #endregion
+
+        #region Polling
+
         public void StartPolling()
         {
             //lock (this)
@@ -108,6 +114,10 @@ namespace JoyConToPC.Input.Type
                 _pollingTask = null;
             }
         }
+
+        #endregion
+
+        #region LED
 
         public void SetupLeds(JoyConLed led)
         {
@@ -149,15 +159,40 @@ namespace JoyConToPC.Input.Type
             CalculateLight(ref light, fourthLed, 8);
 
             _device.Write(1, 0x30, new[] {light});
-
-            //TODO: Rumble
-            /*byte[] buf = new byte[0x9];
-            buf[1 + 0] = 200;
-            buf[1 + 4] = 200;
-            buf[1 + 0 + 1] = 0x1;
-            buf[1 + 4 + 1] = 0x1;
-            _device.Write(0x10, buf);*/
         }
+
+        #endregion
+
+        #region Rumbles
+
+        public void Rumble(JoyConRumble rumble)
+        {
+            Rumble(new JoyConRumbleInfo(rumble));
+        }
+
+        public void Rumble(JoyConRumbleInfo rumbleInfo)
+        {
+            //TODO: Rumble not work
+            byte[] buf = new byte[0x9];
+
+            if (rumbleInfo.RumbleDict.ContainsKey(JoyConRumbleIndex.First))
+            {
+                var rumble = rumbleInfo.RumbleDict[JoyConRumbleIndex.First];
+                buf[1 + 0] = rumble.Frequency;
+                buf[1 + 0 + rumble.Intensity] = 0x1;
+            }
+
+            if (rumbleInfo.RumbleDict.ContainsKey(JoyConRumbleIndex.Second))
+            {
+                var rumble = rumbleInfo.RumbleDict[JoyConRumbleIndex.Second];
+                buf[1 + 4] = rumble.Frequency;
+                buf[1 + 4 + rumble.Intensity] = 0x1;
+            }
+
+            _device.Write(0x10, buf);
+        }
+
+        #endregion
 
         public void Dispose()
         {
@@ -176,6 +211,8 @@ namespace JoyConToPC.Input.Type
             _device.Dispose();
             IsDisposed = true;
         }
+
+        #region Privates
 
         private void Poll()
         {
@@ -219,6 +256,8 @@ namespace JoyConToPC.Input.Type
                     throw new NotImplementedException();
             }
         }
+
+        #endregion
 
         #region Equals / Hashcode
 
