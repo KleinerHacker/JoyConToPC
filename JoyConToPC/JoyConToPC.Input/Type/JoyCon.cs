@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using HidLibrary;
@@ -45,6 +46,7 @@ namespace JoyConToPC.Input.Type
                 throw new ArgumentException("HID Device is not a JoyCon");
 
             _device = device;
+            _device.MonitorDeviceEvents = false;
 
             Guid = device.ReadSerialNumber();
             Type = joyConType.Value;
