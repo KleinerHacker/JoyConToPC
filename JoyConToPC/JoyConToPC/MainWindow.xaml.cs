@@ -14,6 +14,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using JoyConToPC.Core;
+using JoyConToPC.Input;
 
 namespace JoyConToPC
 {
@@ -25,7 +26,9 @@ namespace JoyConToPC
         public MainWindow()
         {
             InitializeComponent();
-            JoyConDriver.Instance.JoyConUpdated += InstanceOnJoyConUpdated;
+
+            Activated += (sender, args) => JoyConDriver.Instance.JoyConUpdated += InstanceOnJoyConUpdated;
+            Deactivated += (sender, args) => JoyConDriver.Instance.JoyConUpdated -= InstanceOnJoyConUpdated;
         }
 
         private void InstanceOnJoyConUpdated(object sender, JoyConUpdateEventArgs joyConUpdateEventArgs)

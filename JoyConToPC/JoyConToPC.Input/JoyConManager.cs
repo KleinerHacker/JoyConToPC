@@ -1,20 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Timers;
-using JoyConToPC.Input;
 using JoyConToPC.Input.Type;
 
-namespace JoyConToPC.Core
+namespace JoyConToPC.Input
 {
-    internal sealed class JoyConManager
+    public sealed class JoyConManager : IDisposable
     {
         #region Properties
 
         public IList<IJoyCon> JoyConList { get; } = new List<IJoyCon>();
+        public bool IsDisposed { get; private set; }
 
         #endregion
 
@@ -29,6 +25,22 @@ namespace JoyConToPC.Core
         public JoyConManager()
         {
             _connectionTimer.Elapsed += OnConnectionTimerElapsed;
+        }
+
+        public void Dispose()
+        {
+            if (IsDisposed)
+                throw new InvalidOperationException("already disposed");
+
+            _connectionTimer.Enabled = false;
+
+            foreach (var joyCon in JoyConList)
+            {
+                JoyConUpdated?.Invoke(this, new JoyConUpdateEventArgs(joyCon, JoyConUpdateType.Disconnected));
+            }
+            JoyConList.Clear();
+
+            IsDisposed = true;
         }
 
         private void OnConnectionTimerElapsed(object sender, ElapsedEventArgs elapsedEventArgs)

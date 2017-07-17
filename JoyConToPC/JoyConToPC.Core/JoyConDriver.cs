@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using JoyConToPC.Input;
 using JoyConToPC.Input.Type;
 
 namespace JoyConToPC.Core
@@ -18,6 +19,11 @@ namespace JoyConToPC.Core
         {
             _manager = new JoyConManager();
             _handler = new JoyConHandler(_manager);
+        }
+
+        ~JoyConDriver()
+        {
+            _manager.Dispose();
         }
 
         #region Delegates Manager

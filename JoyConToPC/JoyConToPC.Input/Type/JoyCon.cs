@@ -87,6 +87,8 @@ namespace JoyConToPC.Input.Type
                 }
 
                 _device.CloseDevice();
+
+                SetupLeds(JoyConLed.FlashAll);
             }
         }
 
@@ -166,8 +168,6 @@ namespace JoyConToPC.Input.Type
         {
             if (IsDisposed)
                 throw new InvalidOperationException("Already disposed");
-            if (!IsAcquired)
-                throw new InvalidOperationException("Is not acquired yet");
 
             Logger.Info($"Set LEDs {firstLed}, {secondLed}, {thirdLed}, {fourthLed} to JoyCon {Guid}");
 
@@ -177,7 +177,12 @@ namespace JoyConToPC.Input.Type
             CalculateLight(ref light, thirdLed, 4);
             CalculateLight(ref light, fourthLed, 8);
 
+            bool autoClose = !IsAcquired;
             _device.Write(1, 0x30, new[] {light});
+            if (autoClose)
+            {
+                _device.CloseDevice();
+            }
         }
 
         #endregion

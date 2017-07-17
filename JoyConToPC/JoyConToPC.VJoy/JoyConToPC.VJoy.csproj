@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{887857BE-1AFE-4DF1-8540-641EC439C094}</ProjectGuid>
+    <ProjectGuid>{33088C70-06C3-4454-9837-388D5B01E7C7}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>JoyConToPC.Core</RootNamespace>
-    <AssemblyName>JoyConToPC.Core</AssemblyName>
+    <RootNamespace>JoyConToPC.VJoy</RootNamespace>
+    <AssemblyName>JoyConToPC.VJoy</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -48,10 +48,6 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
-      <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -62,23 +58,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="JoyConDriver.cs" />
-    <Compile Include="JoyConHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Util\Extension\JoyConStateExtensions.cs" />
+    <Compile Include="Type\VirtualJoystickData.cs" />
+    <Compile Include="Type\VJoyData.cs" />
+    <Compile Include="Util\VJoyConfig.cs" />
+    <Compile Include="Util\VJoyNatives.cs" />
+    <Compile Include="VirtualJoystick.cs" />
+    <Compile Include="VirtualJoystickManager.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\JoyConToPC.Input\JoyConToPC.Input.csproj">
-      <Project>{e72bdb8d-362d-4f15-a6f2-e02e699b09f8}</Project>
-      <Name>JoyConToPC.Input</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\JoyConToPC.VJoy\JoyConToPC.VJoy.csproj">
-      <Project>{33088c70-06c3-4454-9837-388d5b01e7c7}</Project>
-      <Name>JoyConToPC.VJoy</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
+    <None Include="vJoyInterface.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

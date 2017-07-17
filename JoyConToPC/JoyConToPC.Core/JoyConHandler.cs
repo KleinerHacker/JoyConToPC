@@ -4,13 +4,23 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using JoyConToPC.Core.Util.Extension;
+using JoyConToPC.Input;
 using JoyConToPC.Input.Type;
+using JoyConToPC.VJoy;
+using JoyConToPC.VJoy.Type;
+using log4net;
 
 namespace JoyConToPC.Core
 {
     internal class JoyConHandler
     {
+        private static ILog Logger { get; } = LogManager.GetLogger(typeof(JoyConHandler));
+
         private readonly JoyConManager _manager;
+
+        private readonly IDictionary<IJoyCon, VirtualJoystick> _virtualJoystickDict =
+            new Dictionary<IJoyCon, VirtualJoystick>();
 
         public JoyConHandler(JoyConManager manager)
         {
@@ -35,13 +45,41 @@ namespace JoyConToPC.Core
 
         private void OnNewJoyCon(IJoyCon joyCon)
         {
-            joyCon.Acquire(JoyConPlayer.First);
-            joyCon.DataUpdated += OnJoyConDataUpdate;
-            joyCon.StartPolling();
+            Logger.Info("New JoyCon " + joyCon);
+
+            JoyConPlayer? player = JoyConPlayer.First;
+            while (player != null)
+            {
+                if (VirtualJoystickManager.IsVirtualJoystickUsable((uint) player.Value))
+                {
+                    Logger.Debug(">>> Register JoyCon as " + (uint) player.Value);
+
+                    var virtualJoystick = VirtualJoystickManager.GetVirtualJoystick((uint) player.Value);
+
+                    joyCon.Acquire(player.Value);
+                    joyCon.DataUpdated += OnJoyConDataUpdate;
+                    joyCon.StartPolling();
+
+                    _virtualJoystickDict.Add(joyCon, virtualJoystick);
+
+                    break;
+                }
+
+                player = player.Value.Next();
+            }
+
+            if (player == null)
+            {
+                Logger.Warn(">>> Cannot register JoyCon: Not enought VJoy Controller found (max. 4)");
+                joyCon.SetupLeds(JoyConSingleLed.Flash, JoyConSingleLed.Off, JoyConSingleLed.Off,
+                    JoyConSingleLed.Flash);
+            }
         }
 
         private void OnRemoveJoyCon(IJoyCon joyCon)
         {
+            Logger.Info("Removed JoyCon " + joyCon);
+
             if (joyCon.IsPolling)
             {
                 joyCon.StopPolling();
@@ -51,11 +89,18 @@ namespace JoyConToPC.Core
             {
                 joyCon.Unacquire();
             }
+
+            _virtualJoystickDict[joyCon].Dispose();
+            _virtualJoystickDict.Remove(joyCon);
         }
 
         private void OnJoyConDataUpdate(object sender, JoyConDataUpdateEventArgs args)
         {
-            Console.WriteLine(args.JoyConState);
+            if (!_virtualJoystickDict.ContainsKey(args.JoyConSource))
+                return;
+
+            var virtualJoystick = _virtualJoystickDict[args.JoyConSource];
+            virtualJoystick.SendData(args.JoyConState.ToVirtualJoystickData(args.JoyConSource is JoyConPair));
         }
     }
 }

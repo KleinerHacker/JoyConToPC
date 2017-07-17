@@ -6,17 +6,17 @@ using System.Threading.Tasks;
 
 namespace JoyConToPC.Input.Type
 {
-    public enum JoyConPlayer
+    public enum JoyConPlayer : uint
     {
-        First,
-        Second,
-        Third,
-        Fourth
+        First = 1,
+        Second = 2,
+        Third = 3,
+        Fourth = 4
     }
 
-    internal static class JoyConPlayerExtensions
+    public static class JoyConPlayerExtensions
     {
-        public static JoyConLed ToJoyConLed(this JoyConPlayer? player)
+        internal static JoyConLed ToJoyConLed(this JoyConPlayer? player)
         {
             if (player == null)
                 return JoyConLed.FlashAll;
@@ -36,9 +36,26 @@ namespace JoyConToPC.Input.Type
             }
         }
 
-        public static JoyConLed ToJoyConLed(this JoyConPlayer player)
+        internal static JoyConLed ToJoyConLed(this JoyConPlayer player)
         {
             return ToJoyConLed((JoyConPlayer?) player);
+        }
+
+        public static JoyConPlayer? Next(this JoyConPlayer player)
+        {
+            switch (player)
+            {
+                case JoyConPlayer.First:
+                    return JoyConPlayer.Second;
+                case JoyConPlayer.Second:
+                    return JoyConPlayer.Third;
+                case JoyConPlayer.Third:
+                    return JoyConPlayer.Fourth;
+                case JoyConPlayer.Fourth:
+                    return null;
+                default:
+                    throw new NotImplementedException();
+            }
         }
     }
 }
