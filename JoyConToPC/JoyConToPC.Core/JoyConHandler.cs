@@ -35,7 +35,7 @@ namespace JoyConToPC.Core
 
         private void OnNewJoyCon(IJoyCon joyCon)
         {
-            joyCon.Acquire(1, Process.GetCurrentProcess().MainWindowHandle);
+            joyCon.Acquire(JoyConPlayer.First);
             joyCon.DataUpdated += OnJoyConDataUpdate;
             joyCon.StartPolling();
         }
@@ -49,7 +49,7 @@ namespace JoyConToPC.Core
 
         private void OnJoyConDataUpdate(object sender, JoyConDataUpdateEventArgs args)
         {
-            Console.WriteLine(args.State);
+            //Console.WriteLine(args.State);
         }
     }
 }

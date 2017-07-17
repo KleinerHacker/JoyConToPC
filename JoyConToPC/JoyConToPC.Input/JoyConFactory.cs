@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using HidLibrary;
 using JoyConToPC.Input.Type;
 using JoyConToPC.Input.Util;
 using JoyConToPC.Input.Util.Extension;
-using SharpDX.DirectInput;
 
 namespace JoyConToPC.Input
 {
@@ -13,39 +13,29 @@ namespace JoyConToPC.Input
     {
         private static readonly object Monitor = new object();
 
-        private static IList<JoyCon> GetAvailableRawJoyConList()
+        private static IList<JoyCon> GetRawJoyConList()
         {
             var result = new List<JoyCon>();
-            
-            var devices = InputCore.GetDevices();
-            foreach (DeviceInstance device in devices)
+
+            var devices = HidDevices.Enumerate(JoyConConstants.Vendor);
+            foreach (var device in devices)
             {
-                var joyConType = device.ProductGuid.ToJoyConType();
+                var joyConType = device.ToJoyConType();
                 if (!joyConType.HasValue)
                     continue;
-
-                var joyCon = new JoyCon(device.InstanceGuid, joyConType.Value);
-                try
-                {
-                    joyCon.Acquire(1, Process.GetCurrentProcess().MainWindowHandle);
-                    joyCon.Unacquire();
-                }
-                catch (Exception)
-                {
-                    continue;
-                }
-
+                
+                var joyCon = new JoyCon(device);
                 result.Add(joyCon);
             }
 
             return result;
         }
 
-        public static IList<IJoyCon> GetAvailableJoyConList()
+        public static IList<IJoyCon> GetJoyConList()
         {
             lock (Monitor)
             {
-                var joyConRawList = GetAvailableRawJoyConList();
+                var joyConRawList = GetRawJoyConList();
 
                 var joyConList = new List<IJoyCon>();
 

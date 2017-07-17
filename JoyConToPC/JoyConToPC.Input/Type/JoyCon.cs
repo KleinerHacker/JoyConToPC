@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using JoyConToPC.Input.Util;
-using SharpDX.DirectInput;
+using HidLibrary;
+using JoyConToPC.Input.Util.Extension;
 
 namespace JoyConToPC.Input.Type
 {
@@ -10,11 +10,12 @@ namespace JoyConToPC.Input.Type
     {
         #region Properties
 
-        public Guid Guid { get; }
+        public string Guid { get; }
         public JoyConType Type { get; }
 
-        public bool IsAcquired { get; private set; }
-        public int PlayerNumber { get; private set; }
+        public bool IsConnected => _device.IsConnected;
+        public bool IsAcquired => _device.IsOpen;
+        public JoyConPlayer Player { get; private set; }
         public bool IsPolling => _pollingTask != null;
 
         public bool IsDisposed { get; private set; }
@@ -27,19 +28,23 @@ namespace JoyConToPC.Input.Type
 
         #endregion
 
-        private readonly Joystick _joystick;
+        private readonly HidDevice _device;
         private CancellationTokenSource _cts;
         private Task _pollingTask;
 
-        public JoyCon(Guid guid, JoyConType type)
+        public JoyCon(HidDevice device)
         {
-            Guid = guid;
-            Type = type;
+            var joyConType = device.ToJoyConType();
+            if (joyConType == null)
+                throw new ArgumentException("HID Device is not a JoyCon");
 
-            _joystick = InputCore.CreateJoystick(guid);
+            _device = device;
+
+            Guid = device.ReadSerialNumber();
+            Type = joyConType.Value;
         }
 
-        public void Acquire(int number, IntPtr handle)
+        public void Acquire(JoyConPlayer player)
         {
             //lock (this)
             {
@@ -48,11 +53,10 @@ namespace JoyConToPC.Input.Type
                 if (IsAcquired)
                     throw new InvalidOperationException("Already acquired");
 
-                _joystick.SetCooperativeLevel(handle, (CooperativeLevel.Exclusive | CooperativeLevel.Background));
-                _joystick.Acquire();
-                PlayerNumber = number;
+                _device.OpenDevice();
+                Player = player;
 
-                IsAcquired = true;
+                SetupLeds(player.ToJoyConLed());
             }
         }
 
@@ -69,9 +73,7 @@ namespace JoyConToPC.Input.Type
                     StopPolling();
                 }
 
-                _joystick.Unacquire();
-
-                IsAcquired = false;
+                _device.CloseDevice();
             }
         }
 
@@ -103,9 +105,58 @@ namespace JoyConToPC.Input.Type
                     throw new InvalidOperationException("Is not polling yet");
 
                 _cts.Cancel();
-                _cts = null;
                 _pollingTask = null;
             }
+        }
+
+        public void SetupLeds(JoyConLed led)
+        {
+            switch (led)
+            {
+                case JoyConLed.First:
+                    SetupLeds(JoyConSingleLed.On, JoyConSingleLed.Off, JoyConSingleLed.Off, JoyConSingleLed.Off);
+                    break;
+                case JoyConLed.Second:
+                    SetupLeds(JoyConSingleLed.Off, JoyConSingleLed.On, JoyConSingleLed.Off, JoyConSingleLed.Off);
+                    break;
+                case JoyConLed.Third:
+                    SetupLeds(JoyConSingleLed.Off, JoyConSingleLed.Off, JoyConSingleLed.On, JoyConSingleLed.Off);
+                    break;
+                case JoyConLed.Fourth:
+                    SetupLeds(JoyConSingleLed.Off, JoyConSingleLed.Off, JoyConSingleLed.Off, JoyConSingleLed.On);
+                    break;
+                case JoyConLed.FlashAll:
+                    SetupLeds(JoyConSingleLed.Flash, JoyConSingleLed.Flash, JoyConSingleLed.Flash,
+                        JoyConSingleLed.Flash);
+                    break;
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+
+        public void SetupLeds(JoyConSingleLed firstLed, JoyConSingleLed secondLed, JoyConSingleLed thirdLed,
+            JoyConSingleLed fourthLed)
+        {
+            if (IsDisposed)
+                throw new InvalidOperationException("Already disposed");
+            if (!IsAcquired)
+                throw new InvalidOperationException("Is not acquired yet");
+
+            byte light = 0;
+            CalculateLight(ref light, firstLed, 1);
+            CalculateLight(ref light, secondLed, 2);
+            CalculateLight(ref light, thirdLed, 4);
+            CalculateLight(ref light, fourthLed, 8);
+
+            _device.Write(1, 0x30, new[] {light});
+
+            //TODO: Rumble
+            /*byte[] buf = new byte[0x9];
+            buf[1 + 0] = 200;
+            buf[1 + 4] = 200;
+            buf[1 + 0 + 1] = 0x1;
+            buf[1 + 4 + 1] = 0x1;
+            _device.Write(0x10, buf);*/
         }
 
         public void Dispose()
@@ -122,18 +173,13 @@ namespace JoyConToPC.Input.Type
                 Unacquire();
             }
 
-            _joystick.Dispose();
+            _device.Dispose();
             IsDisposed = true;
         }
 
         private void Poll()
         {
-            _joystick.Poll();
-            var states = _joystick.GetBufferedData();
-            foreach (var state in states)
-            {
-                DataUpdated?.Invoke(this, new JoyConDataUpdateEventArgs(state));
-            }
+            //TODO
         }
 
         private void PollingTask()
@@ -143,13 +189,42 @@ namespace JoyConToPC.Input.Type
                 Poll();
                 Thread.Sleep(10);
             }
+
+            _cts = null;
+        }
+
+        private void CalculateLight(ref byte light, JoyConSingleLed led, byte number)
+        {
+            var flashNumber = (byte) (number * 0x10);
+
+            switch (led)
+            {
+                case JoyConSingleLed.On:
+                    light |= number;
+                    if ((light & flashNumber) != 0)
+                        light ^= flashNumber;
+                    break;
+                case JoyConSingleLed.Off:
+                    if ((light & number) != 0)
+                        light ^= number;
+                    if ((light & flashNumber) != 0)
+                        light ^= flashNumber;
+                    break;
+                case JoyConSingleLed.Flash:
+                    if ((light & number) != 0)
+                        light ^= number;
+                    light |= flashNumber;
+                    break;
+                default:
+                    throw new NotImplementedException();
+            }
         }
 
         #region Equals / Hashcode
 
         private bool Equals(JoyCon other)
         {
-            return Guid.Equals(other.Guid);
+            return Equals(Guid, other.Guid);
         }
 
         public override bool Equals(object obj)
@@ -161,7 +236,7 @@ namespace JoyConToPC.Input.Type
 
         public override int GetHashCode()
         {
-            return Guid.GetHashCode();
+            return (Guid != null ? Guid.GetHashCode() : 0);
         }
 
         #endregion
@@ -169,22 +244,6 @@ namespace JoyConToPC.Input.Type
         public override string ToString()
         {
             return $"JoyCon {Type} ({Guid})";
-        }
-    }
-
-    public enum JoyConType
-    {
-        Left,
-        Right
-    }
-
-    public class JoyConDataUpdateEventArgs : EventArgs
-    {
-        public JoystickUpdate State { get; }
-
-        public JoyConDataUpdateEventArgs(JoystickUpdate state)
-        {
-            State = state;
         }
     }
 }

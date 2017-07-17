@@ -9,9 +9,10 @@ namespace JoyConToPC.Input.Type
         internal JoyCon LeftJoyCon { get; }
         internal JoyCon RightJoyCon { get; }
 
+        public bool IsConnected => LeftJoyCon.IsConnected && RightJoyCon.IsConnected;
         public bool IsAcquired => LeftJoyCon.IsAcquired || RightJoyCon.IsAcquired;
         public bool IsPolling => LeftJoyCon.IsPolling || RightJoyCon.IsPolling;
-        public int PlayerNumber => LeftJoyCon.PlayerNumber;
+        public JoyConPlayer Player => LeftJoyCon.Player;
         public bool IsDisposed => LeftJoyCon.IsDisposed || RightJoyCon.IsDisposed;
 
         #endregion
@@ -36,10 +37,10 @@ namespace JoyConToPC.Input.Type
             RightJoyCon.DataUpdated += (sender, args) => DataUpdated?.Invoke(this, args);
         }
 
-        public void Acquire(int number, IntPtr handle)
+        public void Acquire(JoyConPlayer player)
         {
-            LeftJoyCon.Acquire(number, handle);
-            RightJoyCon.Acquire(number, handle);
+            LeftJoyCon.Acquire(player);
+            RightJoyCon.Acquire(player);
         }
 
         public void Unacquire()
@@ -58,6 +59,19 @@ namespace JoyConToPC.Input.Type
         {
             LeftJoyCon.StopPolling();
             RightJoyCon.StopPolling();
+        }
+
+        public void SetupLeds(JoyConLed led)
+        {
+            LeftJoyCon.SetupLeds(led);
+            RightJoyCon.SetupLeds(led);
+        }
+
+        public void SetupLeds(JoyConSingleLed firstLed, JoyConSingleLed secondLed, JoyConSingleLed thirdLed,
+            JoyConSingleLed fourthLed)
+        {
+            LeftJoyCon.SetupLeds(firstLed, secondLed, thirdLed, fourthLed);
+            RightJoyCon.SetupLeds(firstLed, secondLed, thirdLed, fourthLed);
         }
 
         public void Dispose()

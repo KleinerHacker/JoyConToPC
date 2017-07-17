@@ -33,7 +33,7 @@ namespace JoyConToPC.Core
 
         private void OnConnectionTimerElapsed(object sender, ElapsedEventArgs elapsedEventArgs)
         {
-            var availableJoyConList = JoyConFactory.GetAvailableJoyConList();
+            var availableJoyConList = JoyConFactory.GetJoyConList();
 
             //Find all new
             foreach (var joyCon in availableJoyConList)
