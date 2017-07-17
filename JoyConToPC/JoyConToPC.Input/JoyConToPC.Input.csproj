@@ -34,6 +34,10 @@
       <HintPath>..\packages\hidlibrary.3.2.46.0\lib\HidLibrary.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Windows.Forms" />
@@ -53,10 +57,12 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Type\JoyConPlayer.cs" />
     <Compile Include="Type\JoyConRumble.cs" />
+    <Compile Include="Type\JoyConState.cs" />
     <Compile Include="Type\JoyConType.cs" />
     <Compile Include="Util\Extension\ByteArrayExtensions.cs" />
     <Compile Include="Util\Extension\HidDeviceExtensions.cs" />
     <Compile Include="Util\JoyConConstants.cs" />
+    <Compile Include="Util\JoyConInputUtils.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

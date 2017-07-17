@@ -33,8 +33,8 @@ namespace JoyConToPC.Input.Type
             LeftJoyCon = leftJoyCon;
             RightJoyCon = rightJoyCon;
 
-            LeftJoyCon.DataUpdated += (sender, args) => DataUpdated?.Invoke(this, args);
-            RightJoyCon.DataUpdated += (sender, args) => DataUpdated?.Invoke(this, args);
+            LeftJoyCon.DataUpdated += (sender, args) => DataUpdated?.Invoke(this, new JoyConDataUpdateEventArgs(this, args.JoyConState));
+            RightJoyCon.DataUpdated += (sender, args) => DataUpdated?.Invoke(this, new JoyConDataUpdateEventArgs(this, args.JoyConState));
         }
 
         #region Acquiration

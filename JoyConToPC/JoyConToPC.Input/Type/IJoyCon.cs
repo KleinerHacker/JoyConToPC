@@ -29,6 +29,13 @@ namespace JoyConToPC.Input.Type
 
     public class JoyConDataUpdateEventArgs : EventArgs
     {
-        //TODO
+        public IJoyCon JoyConSource { get; }
+        public JoyConState JoyConState { get; }
+
+        public JoyConDataUpdateEventArgs(IJoyCon joyConSource, JoyConState joyConState)
+        {
+            JoyConSource = joyConSource;
+            JoyConState = joyConState;
+        }
     }
 }

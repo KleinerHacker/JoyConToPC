@@ -2,12 +2,16 @@
 using System.Threading;
 using System.Threading.Tasks;
 using HidLibrary;
+using JoyConToPC.Input.Util;
 using JoyConToPC.Input.Util.Extension;
+using log4net;
 
 namespace JoyConToPC.Input.Type
 {
     public sealed class JoyCon : IJoyCon
     {
+        private static ILog Logger { get; } = LogManager.GetLogger(typeof(JoyCon));
+
         #region Properties
 
         public string Guid { get; }
@@ -32,6 +36,8 @@ namespace JoyConToPC.Input.Type
         private CancellationTokenSource _cts;
         private Task _pollingTask;
 
+        private JoyConState _lastJoyConState = null;
+
         public JoyCon(HidDevice device)
         {
             var joyConType = device.ToJoyConType();
@@ -55,6 +61,8 @@ namespace JoyConToPC.Input.Type
                 if (IsAcquired)
                     throw new InvalidOperationException("Already acquired");
 
+                Logger.Info("Acquire JoyCon " + Guid);
+
                 _device.OpenDevice();
                 Player = player;
 
@@ -70,6 +78,9 @@ namespace JoyConToPC.Input.Type
                     throw new InvalidOperationException("Already disposed");
                 if (!IsAcquired)
                     throw new InvalidOperationException("Is not acquired yet");
+
+                Logger.Info("Unacquire JoyCon " + Guid);
+
                 if (IsPolling)
                 {
                     StopPolling();
@@ -94,6 +105,8 @@ namespace JoyConToPC.Input.Type
                 if (IsPolling)
                     throw new InvalidOperationException("Already polling");
 
+                Logger.Info("Start Polling JoyCon " + Guid);
+
                 _cts = new CancellationTokenSource();
                 _pollingTask = Task.Run(() => PollingTask(), _cts.Token);
             }
@@ -110,6 +123,8 @@ namespace JoyConToPC.Input.Type
                 if (!IsPolling)
                     throw new InvalidOperationException("Is not polling yet");
 
+                Logger.Info("Stop Polling JoyCon " + Guid);
+
                 _cts.Cancel();
                 _pollingTask = null;
             }
@@ -121,6 +136,8 @@ namespace JoyConToPC.Input.Type
 
         public void SetupLeds(JoyConLed led)
         {
+            Logger.Info($"Set LED {led} to JoyCon {Guid}");
+
             switch (led)
             {
                 case JoyConLed.First:
@@ -152,6 +169,8 @@ namespace JoyConToPC.Input.Type
             if (!IsAcquired)
                 throw new InvalidOperationException("Is not acquired yet");
 
+            Logger.Info($"Set LEDs {firstLed}, {secondLed}, {thirdLed}, {fourthLed} to JoyCon {Guid}");
+
             byte light = 0;
             CalculateLight(ref light, firstLed, 1);
             CalculateLight(ref light, secondLed, 2);
@@ -172,6 +191,8 @@ namespace JoyConToPC.Input.Type
 
         public void Rumble(JoyConRumbleInfo rumbleInfo)
         {
+            Logger.Info($"Rumble JoyCon {Guid}");
+
             //TODO: Rumble not work
             byte[] buf = new byte[0x9];
 
@@ -199,6 +220,8 @@ namespace JoyConToPC.Input.Type
             if (IsDisposed)
                 throw new InvalidOperationException("Already disposed");
 
+            Logger.Info($"Dispose JoyCon {Guid}");
+
             if (IsPolling)
             {
                 StopPolling();
@@ -216,7 +239,18 @@ namespace JoyConToPC.Input.Type
 
         private void Poll()
         {
-            //TODO
+            _device.Write(new byte[] { 0x01, 0x00 });
+            var deviceData = _device.Read();
+            
+            if (deviceData.Status != HidDeviceData.ReadStatus.Success)
+                return;
+
+            var joyConState = JoyConInputUtils.ReadInput(deviceData.Data, Type);
+            if (joyConState != null && !joyConState.Equals(_lastJoyConState))
+            {
+                _lastJoyConState = joyConState;
+                DataUpdated?.Invoke(this, new JoyConDataUpdateEventArgs(this, joyConState));
+            }
         }
 
         private void PollingTask()

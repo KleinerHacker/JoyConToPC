@@ -55,7 +55,7 @@ namespace JoyConToPC.Core
 
         private void OnJoyConDataUpdate(object sender, JoyConDataUpdateEventArgs args)
         {
-            //Console.WriteLine(args.State);
+            Console.WriteLine(args.JoyConState);
         }
     }
 }
