@@ -25,6 +25,8 @@ namespace JoyConToPC.Input.Type
 
         public bool IsDisposed { get; private set; }
 
+        public JoyConState CurrentState { get; private set; }
+
         #endregion
 
         #region Events
@@ -36,8 +38,6 @@ namespace JoyConToPC.Input.Type
         private readonly HidDevice _device;
         private CancellationTokenSource _cts;
         private Task _pollingTask;
-
-        private JoyConState _lastJoyConState = null;
 
         public JoyCon(HidDevice device)
         {
@@ -246,6 +246,7 @@ namespace JoyConToPC.Input.Type
 
         private void Poll()
         {
+            _device.ReadReport(); //Wait for input
             _device.Write(new byte[] { 0x01, 0x00 });
             var deviceData = _device.Read();
             
@@ -253,9 +254,9 @@ namespace JoyConToPC.Input.Type
                 return;
 
             var joyConState = JoyConInputUtils.ReadInput(deviceData.Data, Type);
-            if (joyConState != null && !joyConState.Equals(_lastJoyConState))
+            if (joyConState != null && !joyConState.Equals(CurrentState))
             {
-                _lastJoyConState = joyConState;
+                CurrentState = joyConState;
                 DataUpdated?.Invoke(this, new JoyConDataUpdateEventArgs(this, joyConState));
             }
         }

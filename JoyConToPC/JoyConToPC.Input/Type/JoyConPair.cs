@@ -6,8 +6,8 @@ namespace JoyConToPC.Input.Type
     {
         #region Properties
 
-        internal JoyCon LeftJoyCon { get; }
-        internal JoyCon RightJoyCon { get; }
+        public JoyCon LeftJoyCon { get; }
+        public JoyCon RightJoyCon { get; }
 
         public bool IsConnected => LeftJoyCon.IsConnected && RightJoyCon.IsConnected;
         public bool IsAcquired => LeftJoyCon.IsAcquired || RightJoyCon.IsAcquired;

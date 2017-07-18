@@ -6,13 +6,13 @@ namespace JoyConToPC.Core.Util.Extension
 {
     internal static class JoyConStateExtensions
     {
-        public static VirtualJoystickData ToVirtualJoystickData(this JoyConState joyConState, bool isPair)
+        public static VirtualJoystickData ToVirtualJoystickData(this JoyConState joyConState, IJoyCon joyCon)
         {
             var data = new VirtualJoystickData();
 
-            if (isPair)
+            if (joyCon is JoyConPair)
             {
-                HandleJoyConPair(joyConState, ref data);
+                HandleJoyConPair(joyConState, (JoyConPair) joyCon, ref data);
             }
             else
             {
@@ -56,7 +56,7 @@ namespace JoyConToPC.Core.Util.Extension
                 throw new NotImplementedException();
         }
 
-        private static void HandleJoyConPair(JoyConState joyConState, ref VirtualJoystickData data)
+        private static void HandleJoyConPair(JoyConState joyConState, JoyConPair joyCon, ref VirtualJoystickData data)
         {
             if (joyConState is JoyConLeftState)
             {
@@ -71,6 +71,12 @@ namespace JoyConToPC.Core.Util.Extension
                 data.RearBackButtonLeft = state.RearBackButton;
                 data.SelectButton = state.MinusButton;
                 data.StickLeftButton = state.StickButton;
+
+                //Merge With Other JoyCon
+                if (joyCon?.RightJoyCon.CurrentState != null)
+                {
+                    HandleJoyConPair(joyCon.RightJoyCon.CurrentState, null, ref data);
+                }
             }
             else if (joyConState is JoyConRightState)
             {
@@ -85,6 +91,12 @@ namespace JoyConToPC.Core.Util.Extension
                 data.RearBackButtonRight = state.RearBackButton;
                 data.StartButton = state.PlusButton;
                 data.StickRightButton = state.StickButton;
+
+                //Merge With Other JoyCon
+                if (joyCon?.LeftJoyCon.CurrentState != null)
+                {
+                    HandleJoyConPair(joyCon.LeftJoyCon.CurrentState, null, ref data);
+                }
             }
             else
                 throw new NotImplementedException();

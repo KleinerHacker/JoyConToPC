@@ -100,7 +100,7 @@ namespace JoyConToPC.Core
                 return;
 
             var virtualJoystick = _virtualJoystickDict[args.JoyConSource];
-            virtualJoystick.SendData(args.JoyConState.ToVirtualJoystickData(args.JoyConSource is JoyConPair));
+            virtualJoystick.SendData(args.JoyConState.ToVirtualJoystickData(args.JoyConSource));
         }
     }
 }
