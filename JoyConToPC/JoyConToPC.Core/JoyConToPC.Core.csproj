@@ -67,6 +67,7 @@
     <Compile Include="JoyConHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Util\Extension\JoyConStateExtensions.cs" />
+    <Compile Include="Util\JoyConConstants.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\JoyConToPC.Input\JoyConToPC.Input.csproj">

@@ -29,6 +29,12 @@ namespace JoyConToPC.VJoy.Type
         public bool StartButton { get; set; }
         public bool SelectButton { get; set; }
         public bool MainButton { get; set; }
+
+        public int LeftAxisX { get; set; }
+        public int LeftAxisY { get; set; }
+
+        public int RightAxisX { get; set; }
+        public int RightAxisY { get; set; }
     }
 
     internal static class VirtualJoystickDataExtensions
@@ -47,13 +53,13 @@ namespace JoyConToPC.VJoy.Type
                 nativeData.buttons |= 0x00000008;
 
             if (data.ButtonUp)
-                nativeData.buttons |= 0x00000800;
-            if (data.ButtonDown)
                 nativeData.buttons |= 0x00001000;
-            if (data.ButtonLeft)
+            if (data.ButtonDown)
                 nativeData.buttons |= 0x00002000;
-            if (data.ButtonRight)
+            if (data.ButtonLeft)
                 nativeData.buttons |= 0x00004000;
+            if (data.ButtonRight)
+                nativeData.buttons |= 0x00008000;
 
             if (data.BackButtonLeft)
                 nativeData.buttons |= 0x00000010;
@@ -66,9 +72,19 @@ namespace JoyConToPC.VJoy.Type
                 nativeData.buttons |= 0x00000080;
 
             if (data.StartButton)
-                nativeData.buttons |= 0x00000100;
-            if (data.SelectButton)
                 nativeData.buttons |= 0x00000200;
+            if (data.SelectButton)
+                nativeData.buttons |= 0x00000100;
+
+            nativeData.axisX = data.LeftAxisX;
+            nativeData.axisY = data.LeftAxisY;
+            nativeData.axisXRot = data.RightAxisX;
+            nativeData.axisYRot = data.RightAxisY;
+
+            if (data.RearBackButtonLeft)
+                nativeData.slider = int.MaxValue;
+            if (data.RearBackButtonRight)
+                nativeData.dial = int.MaxValue;
 
             return nativeData;
         }

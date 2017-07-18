@@ -9,7 +9,7 @@ using JoyConToPC.Input.Util.Extension;
 
 namespace JoyConToPC.Input
 {
-    public static class JoyConFactory
+    internal static class JoyConFactory
     {
         private static readonly object Monitor = new object();
 

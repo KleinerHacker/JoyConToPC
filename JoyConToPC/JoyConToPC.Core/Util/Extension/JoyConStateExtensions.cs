@@ -1,5 +1,6 @@
 ﻿using System;
 using JoyConToPC.Input.Type;
+using JoyConToPC.Input.Util;
 using JoyConToPC.VJoy.Type;
 
 namespace JoyConToPC.Core.Util.Extension
@@ -37,6 +38,11 @@ namespace JoyConToPC.Core.Util.Extension
                 data.BackButtonRight = state.SideRightButton;
                 data.StartButton = state.MinusButton;
                 data.StickLeftButton = state.StickButton;
+
+                data.LeftAxisX = JoyConConstants.LeftJoyConXMultiplier * state.StickHorizontal +
+                                 JoyConConstants.LeftJoyConOffsetX;
+                data.LeftAxisY = JoyConConstants.LeftJoyConYMultiplier * state.StickVertical +
+                                 JoyConConstants.LeftJoyConOffsetY;
             }
             else if (joyConState is JoyConRightState)
             {
@@ -51,6 +57,11 @@ namespace JoyConToPC.Core.Util.Extension
                 data.BackButtonRight = state.SideRightButton;
                 data.StartButton = state.PlusButton;
                 data.StickLeftButton = state.StickButton;
+
+                data.LeftAxisX = JoyConConstants.LeftJoyConXMultiplier * state.StickHorizontal +
+                                 JoyConConstants.LeftJoyConOffsetX;
+                data.LeftAxisY = JoyConConstants.LeftJoyConYMultiplier * state.StickVertical +
+                                 JoyConConstants.LeftJoyConOffsetY;
             }
             else
                 throw new NotImplementedException();
@@ -72,6 +83,11 @@ namespace JoyConToPC.Core.Util.Extension
                 data.SelectButton = state.MinusButton;
                 data.StickLeftButton = state.StickButton;
 
+                data.LeftAxisX = JoyConConstants.LeftJoyConXMultiplier * state.StickHorizontal +
+                                 JoyConConstants.LeftJoyConOffsetX;
+                data.LeftAxisY = JoyConConstants.LeftJoyConYMultiplier * state.StickVertical +
+                                 JoyConConstants.LeftJoyConOffsetY;
+
                 //Merge With Other JoyCon
                 if (joyCon?.RightJoyCon.CurrentState != null)
                 {
@@ -91,6 +107,11 @@ namespace JoyConToPC.Core.Util.Extension
                 data.RearBackButtonRight = state.RearBackButton;
                 data.StartButton = state.PlusButton;
                 data.StickRightButton = state.StickButton;
+
+                data.RightAxisX = JoyConConstants.RightJoyConXMultiplier * state.StickHorizontal +
+                                  JoyConConstants.RightJoyConOffsetX;
+                data.RightAxisY = JoyConConstants.RightJoyConYMultiplier * state.StickVertical +
+                                  JoyConConstants.RightJoyConOffsetY;
 
                 //Merge With Other JoyCon
                 if (joyCon?.LeftJoyCon.CurrentState != null)

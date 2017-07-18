@@ -65,7 +65,7 @@ namespace JoyConToPC.Input.Type
 
                 Logger.Info("Acquire JoyCon " + Guid);
 
-                _device.OpenDevice();
+                _device.OpenDevice(DeviceMode.NonOverlapped, DeviceMode.NonOverlapped, ShareMode.ShareRead | ShareMode.ShareWrite);
                 Player = player;
 
                 SetupLeds(player.ToJoyConLed());
