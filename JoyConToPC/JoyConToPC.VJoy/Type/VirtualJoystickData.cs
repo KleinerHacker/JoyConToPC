@@ -52,14 +52,15 @@ namespace JoyConToPC.VJoy.Type
             if (data.ButtonY)
                 nativeData.buttons |= 0x00000008;
 
+            nativeData.hats = 0x00000004;
             if (data.ButtonUp)
-                nativeData.buttons |= 0x00001000;
+                nativeData.hats = 0x00000000;
             if (data.ButtonDown)
-                nativeData.buttons |= 0x00002000;
+                nativeData.hats = 0x00000002;
             if (data.ButtonLeft)
-                nativeData.buttons |= 0x00004000;
+                nativeData.hats = 0x00000003;
             if (data.ButtonRight)
-                nativeData.buttons |= 0x00008000;
+                nativeData.hats = 0x00000001;
 
             if (data.BackButtonLeft)
                 nativeData.buttons |= 0x00000010;
@@ -67,24 +68,25 @@ namespace JoyConToPC.VJoy.Type
                 nativeData.buttons |= 0x00000020;
 
             if (data.StickLeftButton)
-                nativeData.buttons |= 0x00000040;
+                nativeData.buttons |= 0x00000100;
             if (data.StickRightButton)
-                nativeData.buttons |= 0x00000080;
+                nativeData.buttons |= 0x00000200;
 
             if (data.StartButton)
-                nativeData.buttons |= 0x00000200;
+                nativeData.buttons |= 0x00000080;
             if (data.SelectButton)
-                nativeData.buttons |= 0x00000100;
+                nativeData.buttons |= 0x00000040;
 
             nativeData.axisX = data.LeftAxisX;
             nativeData.axisY = data.LeftAxisY;
             nativeData.axisXRot = data.RightAxisX;
             nativeData.axisYRot = data.RightAxisY;
 
+            nativeData.axisZ = 16000;
             if (data.RearBackButtonLeft)
-                nativeData.slider = int.MaxValue;
+                nativeData.axisZ = 0;
             if (data.RearBackButtonRight)
-                nativeData.dial = int.MaxValue;
+                nativeData.axisZ = 32000;
 
             return nativeData;
         }

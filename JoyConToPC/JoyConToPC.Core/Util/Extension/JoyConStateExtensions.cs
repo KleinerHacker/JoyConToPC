@@ -85,7 +85,7 @@ namespace JoyConToPC.Core.Util.Extension
 
                 data.LeftAxisX = JoyConConstants.LeftJoyConXMultiplier * state.StickHorizontal +
                                  JoyConConstants.LeftJoyConOffsetX;
-                data.LeftAxisY = JoyConConstants.LeftJoyConYMultiplier * state.StickVertical +
+                data.LeftAxisY = JoyConConstants.LeftJoyConYMultiplier * -state.StickVertical +
                                  JoyConConstants.LeftJoyConOffsetY;
 
                 //Merge With Other JoyCon
