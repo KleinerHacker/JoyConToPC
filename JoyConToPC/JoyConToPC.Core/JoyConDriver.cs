@@ -28,7 +28,7 @@ namespace JoyConToPC.Core
 
         #region Delegates Manager
 
-        public IList<IJoyCon> JoyConList => _manager.JoyConList;
+        public IReadOnlyCollection<IJoyCon> JoyConList => _manager.JoyConList;
 
         public event EventHandler<JoyConUpdateEventArgs> JoyConUpdated
         {

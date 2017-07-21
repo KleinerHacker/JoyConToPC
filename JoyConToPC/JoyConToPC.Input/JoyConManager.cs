@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
 using System.Timers;
 using JoyConToPC.Input.Type;
 
@@ -9,8 +11,23 @@ namespace JoyConToPC.Input
     {
         #region Properties
 
-        public IList<IJoyCon> JoyConList { get; } = new List<IJoyCon>();
+        public IReadOnlyCollection<IJoyCon> JoyConList
+        {
+            get
+            {
+                var list = new List<IJoyCon>();
+                list.AddRange(_singleJoyConList);
+                list.AddRange(_pairJoyConList);
+
+                return new ReadOnlyCollection<IJoyCon>(list);
+            }
+        }
+
         public bool IsDisposed { get; private set; }
+
+        private readonly IList<JoyCon> _rawJoyConList = new List<JoyCon>();
+        private readonly IList<JoyCon> _singleJoyConList = new List<JoyCon>();
+        private readonly IList<JoyConPair> _pairJoyConList = new List<JoyConPair>();
 
         #endregion
 
@@ -38,7 +55,9 @@ namespace JoyConToPC.Input
             {
                 JoyConUpdated?.Invoke(this, new JoyConUpdateEventArgs(joyCon, JoyConUpdateType.Disconnected));
             }
-            JoyConList.Clear();
+            _rawJoyConList.Clear();
+            _singleJoyConList.Clear();
+            _pairJoyConList.Clear();
 
             IsDisposed = true;
         }
@@ -50,20 +69,34 @@ namespace JoyConToPC.Input
             //Find all new
             foreach (var joyCon in availableJoyConList)
             {
-                if (JoyConList.Contains(joyCon))
+                if (_rawJoyConList.Contains(joyCon))
                     continue;
 
-                JoyConList.Add(joyCon);
-                
+                _rawJoyConList.Add(joyCon);
+                _singleJoyConList.Add(joyCon);
+
                 JoyConUpdated?.Invoke(this, new JoyConUpdateEventArgs(joyCon, JoyConUpdateType.Connected));
             }
 
             //Find all removed
-            foreach (var joyCon in JoyConList)
+            foreach (var joyCon in _rawJoyConList)
             {
                 if (availableJoyConList.Contains(joyCon))
                     continue;
-                
+
+                _rawJoyConList.Remove(joyCon);
+                if (_singleJoyConList.Contains(joyCon))
+                {
+                    _singleJoyConList.Remove(joyCon);
+                }
+                else if (_pairJoyConList.Any(jc => jc.LeftJoyCon.Equals(joyCon) || jc.RightJoyCon.Equals(joyCon)))
+                {
+                    var pair = _pairJoyConList.First(
+                        jc => jc.LeftJoyCon.Equals(joyCon) || jc.RightJoyCon.Equals(joyCon));
+                    _pairJoyConList.Remove(pair);
+                    _singleJoyConList.Add(pair.LeftJoyCon.Equals(joyCon) ? pair.RightJoyCon : pair.LeftJoyCon);
+                }
+
                 JoyConUpdated?.Invoke(this, new JoyConUpdateEventArgs(joyCon, JoyConUpdateType.Disconnected));
             }
         }
