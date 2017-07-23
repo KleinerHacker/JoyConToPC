@@ -22,6 +22,8 @@ namespace JoyConToPC.Input.Type
         public bool IsAcquired => _device.IsOpen;
         public JoyConPlayer Player { get; private set; }
         public bool IsPolling => _pollingTask != null;
+        public bool IsPaired => PairedJoyCon != null;
+        public JoyCon PairedJoyCon { get; private set; }
 
         public bool IsDisposed { get; private set; }
 
@@ -32,12 +34,17 @@ namespace JoyConToPC.Input.Type
         #region Events
 
         public event EventHandler<JoyConDataUpdateEventArgs> DataUpdated;
+        internal event EventHandler<JoyConPairingEventArgs> Pairing;
 
         #endregion
 
         private readonly HidDevice _device;
         private CancellationTokenSource _cts;
+
         private Task _pollingTask;
+
+        //Current state of rear bacl button needed for pairing action
+        private bool _currentRearBackButtonState;
 
         public JoyCon(HidDevice device)
         {
@@ -65,7 +72,7 @@ namespace JoyConToPC.Input.Type
 
                 Logger.Info("Acquire JoyCon " + Guid);
 
-                _device.OpenDevice(DeviceMode.NonOverlapped, DeviceMode.NonOverlapped, ShareMode.ShareRead | ShareMode.ShareWrite);
+                _device.OpenDevice();
                 Player = player;
 
                 SetupLeds(player.ToJoyConLed());
@@ -88,9 +95,8 @@ namespace JoyConToPC.Input.Type
                     StopPolling();
                 }
 
-                _device.CloseDevice();
-
                 SetupLeds(JoyConLed.FlashAll);
+                _device.CloseDevice();
             }
         }
 
@@ -130,7 +136,15 @@ namespace JoyConToPC.Input.Type
                 Logger.Info("Stop Polling JoyCon " + Guid);
 
                 _cts.Cancel();
+                while (_cts != null)
+                {
+                    //Wait
+                    Thread.Sleep(10);
+                }
+                _pollingTask.Dispose();
                 _pollingTask = null;
+
+                Logger.Debug("SUCCESS: Stop Polling JoyCon " + Guid);
             }
         }
 
@@ -222,6 +236,34 @@ namespace JoyConToPC.Input.Type
 
         #endregion
 
+        #region Pairing
+
+        /// <summary>
+        /// Pair this joycon with an other joycon and around
+        /// </summary>
+        /// <param name="joyCon"></param>
+        internal void PairWith(JoyCon joyCon)
+        {
+            if (IsPaired)
+                throw new InvalidOperationException("Already paired");
+
+            PairedJoyCon = joyCon;
+            joyCon.PairedJoyCon = this;
+        }
+
+        /// <summary>
+        /// Unpair this joycon
+        /// </summary>
+        internal void UnPair()
+        {
+            if (!IsPaired)
+                throw new InvalidOperationException("Not paired yet");
+
+            PairedJoyCon = null;
+        }
+
+        #endregion
+
         public void Dispose()
         {
             if (IsDisposed)
@@ -246,10 +288,13 @@ namespace JoyConToPC.Input.Type
 
         private void Poll()
         {
-            _device.ReadReport(); //Wait for input
-            _device.Write(new byte[] { 0x01, 0x00 });
+            var report = _device.ReadReport(1000);
+            if (report == null)
+                return;
+
+            _device.Write(new byte[] {0x01, 0x00});
             var deviceData = _device.Read();
-            
+
             if (deviceData.Status != HidDeviceData.ReadStatus.Success)
                 return;
 
@@ -257,18 +302,31 @@ namespace JoyConToPC.Input.Type
             if (joyConState != null && !joyConState.Equals(CurrentState))
             {
                 CurrentState = joyConState;
-                DataUpdated?.Invoke(this, new JoyConDataUpdateEventArgs(this, joyConState));
+                Task.Run(() => DataUpdated?.Invoke(this, new JoyConDataUpdateEventArgs(this, joyConState)));
+
+                if (_currentRearBackButtonState != joyConState.RearBackButton)
+                {
+                    _currentRearBackButtonState = joyConState.RearBackButton;
+                    Task.Run(() => Pairing?.Invoke(this, new JoyConPairingEventArgs(
+                        this, joyConState.RearBackButton ? PairingType.ReadyToPair : PairingType.CancelPairing
+                    )));
+                }
             }
         }
 
         private void PollingTask()
         {
+            Logger.Debug("THREAD: Start Polling");
+
             while (!_cts.IsCancellationRequested)
             {
                 Poll();
                 Thread.Sleep(10);
             }
 
+            Logger.Debug("THREAD: Finish Polling");
+
+            _cts.Dispose();
             _cts = null;
         }
 
@@ -326,5 +384,23 @@ namespace JoyConToPC.Input.Type
         {
             return $"JoyCon {Type} ({Guid})";
         }
+    }
+
+    internal class JoyConPairingEventArgs : EventArgs
+    {
+        public JoyCon SourceJoyCon { get; }
+        public PairingType PairingType { get; }
+
+        public JoyConPairingEventArgs(JoyCon sourceJoyCon, PairingType pairingType)
+        {
+            SourceJoyCon = sourceJoyCon;
+            PairingType = pairingType;
+        }
+    }
+
+    internal enum PairingType
+    {
+        ReadyToPair,
+        CancelPairing
     }
 }

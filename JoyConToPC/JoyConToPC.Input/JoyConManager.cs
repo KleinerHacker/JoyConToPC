@@ -2,13 +2,20 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Timers;
 using JoyConToPC.Input.Type;
+using log4net;
+using Timer = System.Timers.Timer;
 
 namespace JoyConToPC.Input
 {
     public sealed class JoyConManager : IDisposable
     {
+        private static readonly object ListMonitor = new object();
+        private static ILog Logger { get; } = LogManager.GetLogger(typeof(JoyConManager));
+
         #region Properties
 
         public IReadOnlyCollection<IJoyCon> JoyConList
@@ -37,11 +44,21 @@ namespace JoyConToPC.Input
 
         #endregion
 
-        private readonly Timer _connectionTimer = new Timer {Enabled = true, Interval = 1000};
+        private readonly Task _connectionTask;
+        private readonly CancellationTokenSource _cts = new CancellationTokenSource();
+        //A joycon it is ready to pair
+        private JoyCon _readyToPairJoyCon;
 
         public JoyConManager()
         {
-            _connectionTimer.Elapsed += OnConnectionTimerElapsed;
+            _connectionTask = Task.Run(() =>
+            {
+                while (!_cts.IsCancellationRequested)
+                {
+                    OnConnectionTimerElapsed();
+                    Thread.Sleep(1000);
+                }
+            }, _cts.Token);
         }
 
         public void Dispose()
@@ -49,56 +66,121 @@ namespace JoyConToPC.Input
             if (IsDisposed)
                 throw new InvalidOperationException("already disposed");
 
-            _connectionTimer.Enabled = false;
+            _cts.Cancel();
+            _connectionTask.Wait();
+            _connectionTask.Dispose();
 
-            foreach (var joyCon in JoyConList)
+            lock (ListMonitor)
             {
-                JoyConUpdated?.Invoke(this, new JoyConUpdateEventArgs(joyCon, JoyConUpdateType.Disconnected));
+                foreach (var joyCon in JoyConList)
+                {
+                    JoyConUpdated?.Invoke(this, new JoyConUpdateEventArgs(joyCon, JoyConUpdateType.Disconnected));
+                }
+                _rawJoyConList.Clear();
+                _singleJoyConList.Clear();
+                _pairJoyConList.Clear();
             }
-            _rawJoyConList.Clear();
-            _singleJoyConList.Clear();
-            _pairJoyConList.Clear();
 
             IsDisposed = true;
         }
 
-        private void OnConnectionTimerElapsed(object sender, ElapsedEventArgs elapsedEventArgs)
+        private void OnConnectionTimerElapsed()
         {
             var availableJoyConList = JoyConFactory.GetJoyConList();
 
-            //Find all new
-            foreach (var joyCon in availableJoyConList)
+            lock (ListMonitor)
             {
-                if (_rawJoyConList.Contains(joyCon))
-                    continue;
-
-                _rawJoyConList.Add(joyCon);
-                _singleJoyConList.Add(joyCon);
-
-                JoyConUpdated?.Invoke(this, new JoyConUpdateEventArgs(joyCon, JoyConUpdateType.Connected));
-            }
-
-            //Find all removed
-            foreach (var joyCon in _rawJoyConList)
-            {
-                if (availableJoyConList.Contains(joyCon))
-                    continue;
-
-                _rawJoyConList.Remove(joyCon);
-                if (_singleJoyConList.Contains(joyCon))
+                //Find all new
+                foreach (var joyCon in availableJoyConList)
                 {
-                    _singleJoyConList.Remove(joyCon);
-                }
-                else if (_pairJoyConList.Any(jc => jc.LeftJoyCon.Equals(joyCon) || jc.RightJoyCon.Equals(joyCon)))
-                {
-                    var pair = _pairJoyConList.First(
-                        jc => jc.LeftJoyCon.Equals(joyCon) || jc.RightJoyCon.Equals(joyCon));
-                    _pairJoyConList.Remove(pair);
-                    _singleJoyConList.Add(pair.LeftJoyCon.Equals(joyCon) ? pair.RightJoyCon : pair.LeftJoyCon);
+                    if (_rawJoyConList.Contains(joyCon))
+                        continue;
+
+                    _rawJoyConList.Add(joyCon);
+                    _singleJoyConList.Add(joyCon);
+
+                    joyCon.Pairing += OnJoyConPairing;
+
+                    Logger.Info("Find new JoyCon: " + joyCon);
+                    JoyConUpdated?.Invoke(this, new JoyConUpdateEventArgs(joyCon, JoyConUpdateType.Connected));
                 }
 
-                JoyConUpdated?.Invoke(this, new JoyConUpdateEventArgs(joyCon, JoyConUpdateType.Disconnected));
+                //Find all removed
+                foreach (var joyCon in _rawJoyConList)
+                {
+                    if (availableJoyConList.Contains(joyCon))
+                        continue;
+
+                    _rawJoyConList.Remove(joyCon);
+                    if (_singleJoyConList.Contains(joyCon))
+                    {
+                        _singleJoyConList.Remove(joyCon);
+                        Logger.Info("Find removed JoyCon: " + joyCon);
+                        JoyConUpdated?.Invoke(this, new JoyConUpdateEventArgs(joyCon, JoyConUpdateType.Disconnected));
+                    }
+                    else if (_pairJoyConList.Any(jc => jc.LeftJoyCon.Equals(joyCon) || jc.RightJoyCon.Equals(joyCon)))
+                    {
+                        var pair = _pairJoyConList.First(
+                            jc => jc.LeftJoyCon.Equals(joyCon) || jc.RightJoyCon.Equals(joyCon));
+                        _pairJoyConList.Remove(pair);
+                        Logger.Info("Find new JoyCon: " + joyCon);
+                        JoyConUpdated?.Invoke(this, new JoyConUpdateEventArgs(joyCon, JoyConUpdateType.Disconnected));
+                        // Search stayed joycon and unpair, add to single joy con list and make connection message
+                        var stayedJoyCon = pair.LeftJoyCon.Equals(joyCon) ? pair.RightJoyCon : pair.LeftJoyCon;
+                        stayedJoyCon.UnPair();//TODO: In Dispose of JoyConPair?
+                        _singleJoyConList.Add(stayedJoyCon);
+                        JoyConUpdated?.Invoke(this, new JoyConUpdateEventArgs(stayedJoyCon, JoyConUpdateType.Connected));
+                    }
+                }
             }
+        }
+
+        private void OnJoyConPairing(object sender, JoyConPairingEventArgs args)
+        {
+            if (args.PairingType == PairingType.ReadyToPair)
+            {
+                if (_readyToPairJoyCon == null)
+                {
+                    Logger.Debug("JoyCon Ready to Pair: " + args.SourceJoyCon);
+                    _readyToPairJoyCon = args.SourceJoyCon;
+                }
+                else
+                {
+                    if (_readyToPairJoyCon.Equals(args.SourceJoyCon) ||
+                        _readyToPairJoyCon.Type == args.SourceJoyCon.Type)
+                        return; //Detect same or same type (left / right) of joycon
+
+                    Logger.Debug("Start pairing of: " + args.SourceJoyCon + " and " + _readyToPairJoyCon);
+
+                    //Run pairing
+                    var leftJoyCon = _readyToPairJoyCon.Type == JoyConType.Left
+                        ? _readyToPairJoyCon
+                        : args.SourceJoyCon;
+                    var rightJoyCon = _readyToPairJoyCon.Type == JoyConType.Right
+                        ? _readyToPairJoyCon
+                        : args.SourceJoyCon;
+                    lock (ListMonitor)
+                    {
+                        //Remove singles
+                        _singleJoyConList.Remove(leftJoyCon);
+                        JoyConUpdated?.Invoke(this, new JoyConUpdateEventArgs(leftJoyCon, JoyConUpdateType.Disconnected));
+                        _singleJoyConList.Remove(rightJoyCon);
+                        JoyConUpdated?.Invoke(this, new JoyConUpdateEventArgs(rightJoyCon, JoyConUpdateType.Disconnected));
+                        //Add pair as new
+                        var pairedJoyCon = new JoyConPair(leftJoyCon, rightJoyCon);
+                        leftJoyCon.PairWith(rightJoyCon);//TODO: In JoyConPair?
+                        _pairJoyConList.Add(pairedJoyCon);
+                        JoyConUpdated?.Invoke(this, new JoyConUpdateEventArgs(pairedJoyCon, JoyConUpdateType.Connected));
+                    }
+                }
+            }
+            else if (args.PairingType == PairingType.CancelPairing)
+            {
+                Logger.Debug("JoyCon Pairing canceled: " + args.SourceJoyCon);
+                _readyToPairJoyCon = null;
+            }
+            else
+                throw new NotImplementedException();
         }
     }
 

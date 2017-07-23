@@ -90,6 +90,7 @@ namespace JoyConToPC.Core
                 joyCon.Unacquire();
             }
 
+            Console.WriteLine($"JoyCon State: {joyCon.IsAcquired}");
             _virtualJoystickDict[joyCon].Dispose();
             _virtualJoystickDict.Remove(joyCon);
         }
