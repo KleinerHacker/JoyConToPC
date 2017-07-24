@@ -9,6 +9,7 @@ using JoyConToPC.Input;
 using JoyConToPC.Input.Type;
 using JoyConToPC.VJoy;
 using JoyConToPC.VJoy.Type;
+using JoyConToPC.VJoy.Util;
 using log4net;
 
 namespace JoyConToPC.Core
@@ -54,7 +55,8 @@ namespace JoyConToPC.Core
                 {
                     Logger.Debug(">>> Register JoyCon as " + (uint) player.Value);
 
-                    var virtualJoystick = VirtualJoystickManager.GetVirtualJoystick((uint) player.Value);
+                    var virtualJoystick = VirtualJoystickManager.GetVirtualJoystick((uint) player.Value, 
+                        joyCon is JoyCon ? VJoyDeviceProfile.Small : VJoyDeviceProfile.Full);
 
                     joyCon.DataUpdated += OnJoyConDataUpdate;
                     joyCon.Acquire(player.Value);

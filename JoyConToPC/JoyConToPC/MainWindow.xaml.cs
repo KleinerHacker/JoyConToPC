@@ -27,8 +27,8 @@ namespace JoyConToPC
         {
             InitializeComponent();
 
-            Activated += (sender, args) => JoyConDriver.Instance.JoyConUpdated += InstanceOnJoyConUpdated;
-            Deactivated += (sender, args) => JoyConDriver.Instance.JoyConUpdated -= InstanceOnJoyConUpdated;
+            Loaded += (sender, args) => JoyConDriver.Instance.JoyConUpdated += InstanceOnJoyConUpdated;
+            Unloaded += (sender, args) => JoyConDriver.Instance.JoyConUpdated -= InstanceOnJoyConUpdated;
         }
 
         private void InstanceOnJoyConUpdated(object sender, JoyConUpdateEventArgs joyConUpdateEventArgs)

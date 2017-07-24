@@ -12,11 +12,13 @@ namespace JoyConToPC.VJoy
     public sealed class VirtualJoystick : IDisposable
     {
         public uint DeviceId { get; }
+        public VJoyDeviceProfile Profile { get; }
         public bool IsDisposed { get; private set; }
 
-        internal VirtualJoystick(uint deviceId)
+        internal VirtualJoystick(uint deviceId, VJoyDeviceProfile profile)
         {
             DeviceId = deviceId;
+            Profile = profile;
         }
 
         public void SendData(VirtualJoystickData data)
@@ -31,6 +33,7 @@ namespace JoyConToPC.VJoy
                 throw new InvalidOperationException("already disposed");
 
             VJoyNatives.UnacquireVJoy(DeviceId);
+            //VJoyConfig.DeleteDevice(DeviceId);
             IsDisposed = true;
         }
     }

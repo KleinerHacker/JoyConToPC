@@ -9,6 +9,8 @@ namespace JoyConToPC.VJoy
 {
     public static class VirtualJoystickManager
     {
+        private static readonly object Monitor = new object();
+
         static VirtualJoystickManager()
         {
             if (!VJoyNatives.IsVJoyEnabled())
@@ -17,16 +19,24 @@ namespace JoyConToPC.VJoy
 
         public static bool IsVirtualJoystickUsable(uint deviceId)
         {
-            var state = VJoyNatives.GetVJoyState(deviceId);
-            return state == VJoyState.IsFree;
+            lock (Monitor)
+            {
+                var state = VJoyNatives.GetVJoyState(deviceId);
+                return state == VJoyState.IsFree /*|| state == VJoyState.IsMissed || state == VJoyState.IsUnknown*/;
+            }
         }
 
-        public static VirtualJoystick GetVirtualJoystick(uint deviceId)
+        public static VirtualJoystick GetVirtualJoystick(uint deviceId, VJoyDeviceProfile profile)
         {
-            if (!VJoyNatives.AcquireVJoy(deviceId))
-                throw new InvalidOperationException("Unable to aquire VJoy on device id " + deviceId);
+            lock (Monitor)
+            {
+                //VJoyConfig.CreateDevice(deviceId, profile);
 
-            return new VirtualJoystick(deviceId);
+                if (!VJoyNatives.AcquireVJoy(deviceId))
+                    throw new InvalidOperationException("Unable to aquire VJoy on device id " + deviceId);
+
+                return new VirtualJoystick(deviceId, profile);
+            }
         }
     }
 }
