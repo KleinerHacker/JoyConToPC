@@ -30,6 +30,12 @@ namespace JoyConToPC.Input.Util.Extension
             if (!success)
                 return null;
 
+            if (serialNumber.Length > 32)
+            {
+                byte[] tmp = new byte[32];
+                Array.Copy(serialNumber, 0, tmp, 0, tmp.Length);
+                serialNumber = tmp;
+            }
             return serialNumber.ToHexString();
         }
 

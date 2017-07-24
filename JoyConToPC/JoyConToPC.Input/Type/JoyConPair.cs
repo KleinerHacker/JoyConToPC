@@ -11,7 +11,6 @@ namespace JoyConToPC.Input.Type
 
         public bool IsConnected => LeftJoyCon.IsConnected && RightJoyCon.IsConnected;
         public bool IsAcquired => LeftJoyCon.IsAcquired || RightJoyCon.IsAcquired;
-        public bool IsPolling => LeftJoyCon.IsPolling || RightJoyCon.IsPolling;
         public JoyConPlayer Player => LeftJoyCon.Player;
         public bool IsDisposed => LeftJoyCon.IsDisposed || RightJoyCon.IsDisposed;
 
@@ -49,22 +48,6 @@ namespace JoyConToPC.Input.Type
         {
             LeftJoyCon.Unacquire();
             RightJoyCon.Unacquire();
-        }
-
-        #endregion
-
-        #region Polling
-
-        public void StartPolling()
-        {
-            LeftJoyCon.StartPolling();
-            RightJoyCon.StartPolling();
-        }
-
-        public void StopPolling()
-        {
-            LeftJoyCon.StopPolling();
-            RightJoyCon.StopPolling();
         }
 
         #endregion

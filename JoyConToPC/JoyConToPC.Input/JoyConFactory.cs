@@ -13,7 +13,7 @@ namespace JoyConToPC.Input
     {
         private static readonly object Monitor = new object();
 
-        private static IList<JoyCon> GetRawJoyConList()
+        public static IList<JoyCon> GetJoyConList()
         {
             var result = new List<JoyCon>();
 
@@ -31,7 +31,7 @@ namespace JoyConToPC.Input
             return result;
         }
 
-        public static IList<IJoyCon> GetJoyConList()
+        /*public static IList<IJoyCon> GetJoyConList()
         {
             lock (Monitor)
             {
@@ -62,6 +62,6 @@ namespace JoyConToPC.Input
 
                 return joyConList;
             }
-        }
+        }*/
     }
 }
