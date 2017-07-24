@@ -7,7 +7,6 @@ namespace JoyConToPC.Input.Type
     {
         bool IsConnected { get; }
         bool IsAcquired { get; }
-        bool IsPolling { get; }
         JoyConPlayer Player { get; }
         bool IsDisposed { get; }
 
@@ -15,9 +14,6 @@ namespace JoyConToPC.Input.Type
 
         void Acquire(JoyConPlayer player);
         void Unacquire();
-
-        void StartPolling();
-        void StopPolling();
 
         void SetupLeds(JoyConLed led);
         void SetupLeds(JoyConSingleLed firstLed, JoyConSingleLed secondLed,

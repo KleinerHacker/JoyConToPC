@@ -21,7 +21,6 @@ namespace JoyConToPC.Input.Type
         public bool IsConnected => _device.IsConnected;
         public bool IsAcquired => _device.IsOpen;
         public JoyConPlayer Player { get; private set; }
-        public bool IsPolling => _pollingTask != null;
         public bool IsPaired => PairedJoyCon != null;
         public JoyCon PairedJoyCon { get; private set; }
 
@@ -35,6 +34,7 @@ namespace JoyConToPC.Input.Type
 
         public event EventHandler<JoyConDataUpdateEventArgs> DataUpdated;
         internal event EventHandler<JoyConPairingEventArgs> Pairing;
+        internal event EventHandler<JoyConSplittingEventArgs> Splitting;
 
         #endregion
 
@@ -44,7 +44,10 @@ namespace JoyConToPC.Input.Type
         private Task _pollingTask;
 
         //Current state of rear bacl button needed for pairing action
-        private bool _currentRearBackButtonState;
+        private bool _currentInPairingState;
+
+        //Current state of splitting
+        private bool _currentInSplittingState;
 
         public JoyCon(HidDevice device)
         {
@@ -53,7 +56,6 @@ namespace JoyConToPC.Input.Type
                 throw new ArgumentException("HID Device is not a JoyCon");
 
             _device = device;
-            _device.MonitorDeviceEvents = false;
 
             Guid = device.ReadSerialNumber();
             Type = joyConType.Value;
@@ -76,6 +78,9 @@ namespace JoyConToPC.Input.Type
                 Player = player;
 
                 SetupLeds(player.ToJoyConLed());
+
+                _cts = new CancellationTokenSource();
+                _pollingTask = Task.Run(() => PollingTask(), _cts.Token);
             }
         }
 
@@ -90,61 +95,13 @@ namespace JoyConToPC.Input.Type
 
                 Logger.Info("Unacquire JoyCon " + Guid);
 
-                if (IsPolling)
-                {
-                    StopPolling();
-                }
-
-                SetupLeds(JoyConLed.FlashAll);
-                _device.CloseDevice();
-            }
-        }
-
-        #endregion
-
-        #region Polling
-
-        public void StartPolling()
-        {
-            //lock (this)
-            {
-                if (IsDisposed)
-                    throw new InvalidOperationException("Already disposed");
-                if (!IsAcquired)
-                    throw new InvalidOperationException("Is not acquired yet");
-                if (IsPolling)
-                    throw new InvalidOperationException("Already polling");
-
-                Logger.Info("Start Polling JoyCon " + Guid);
-
-                _cts = new CancellationTokenSource();
-                _pollingTask = Task.Run(() => PollingTask(), _cts.Token);
-            }
-        }
-
-        public void StopPolling()
-        {
-            //lock (this)
-            {
-                if (IsDisposed)
-                    throw new InvalidOperationException("Already disposed");
-                if (!IsAcquired)
-                    throw new InvalidOperationException("Is not acquired yet");
-                if (!IsPolling)
-                    throw new InvalidOperationException("Is not polling yet");
-
-                Logger.Info("Stop Polling JoyCon " + Guid);
-
                 _cts.Cancel();
-                while (_cts != null)
-                {
-                    //Wait
-                    Thread.Sleep(10);
-                }
+                _pollingTask.Wait();
                 _pollingTask.Dispose();
                 _pollingTask = null;
 
-                Logger.Debug("SUCCESS: Stop Polling JoyCon " + Guid);
+                SetupLeds(JoyConLed.FlashAll);
+                _device.CloseDevice();
             }
         }
 
@@ -252,13 +209,14 @@ namespace JoyConToPC.Input.Type
         }
 
         /// <summary>
-        /// Unpair this joycon
+        /// Unpair this joycon and around
         /// </summary>
         internal void UnPair()
         {
             if (!IsPaired)
                 throw new InvalidOperationException("Not paired yet");
 
+            PairedJoyCon.PairedJoyCon = null;
             PairedJoyCon = null;
         }
 
@@ -271,10 +229,6 @@ namespace JoyConToPC.Input.Type
 
             Logger.Info($"Dispose JoyCon {Guid}");
 
-            if (IsPolling)
-            {
-                StopPolling();
-            }
             if (IsAcquired)
             {
                 Unacquire();
@@ -288,9 +242,12 @@ namespace JoyConToPC.Input.Type
 
         private void Poll()
         {
-            var report = _device.ReadReport(1000);
+            var report = _device.ReadReport();
             if (report == null)
+            {
+                Logger.Debug("JoyCon Canceled " + this);
                 return;
+            }
 
             _device.Write(new byte[] {0x01, 0x00});
             var deviceData = _device.Read();
@@ -304,12 +261,29 @@ namespace JoyConToPC.Input.Type
                 CurrentState = joyConState;
                 Task.Run(() => DataUpdated?.Invoke(this, new JoyConDataUpdateEventArgs(this, joyConState)));
 
-                if (_currentRearBackButtonState != joyConState.RearBackButton)
+                if (IsPaired)
                 {
-                    _currentRearBackButtonState = joyConState.RearBackButton;
-                    Task.Run(() => Pairing?.Invoke(this, new JoyConPairingEventArgs(
-                        this, joyConState.RearBackButton ? PairingType.ReadyToPair : PairingType.CancelPairing
-                    )));
+                    //Splitting state changed?
+                    if (_currentInSplittingState != (joyConState.SideLeftButton || joyConState.SideRightButton))
+                    {
+                        _currentInSplittingState = joyConState.SideLeftButton || joyConState.SideRightButton;
+                        //Invoke splitting event async
+                        Task.Run(() => Splitting?.Invoke(this, new JoyConSplittingEventArgs(
+                            this, _currentInSplittingState ? SplittingType.ReadyToSplit : SplittingType.CancelSplitting
+                        )));
+                    }
+                }
+                else
+                {
+                    //Pairing state changed?
+                    if (_currentInPairingState != joyConState.RearBackButton)
+                    {
+                        _currentInPairingState = joyConState.RearBackButton;
+                        //Invoke ready to pair or paring cancel event async
+                        Task.Run(() => Pairing?.Invoke(this, new JoyConPairingEventArgs(
+                            this, _currentInPairingState ? PairingType.ReadyToPair : PairingType.CancelPairing
+                        )));
+                    }
                 }
             }
         }
@@ -384,6 +358,24 @@ namespace JoyConToPC.Input.Type
         {
             return $"JoyCon {Type} ({Guid})";
         }
+    }
+
+    internal class JoyConSplittingEventArgs : EventArgs
+    {
+        public JoyCon SourceJoyCon { get; }
+        public SplittingType SplittingType { get; }
+
+        public JoyConSplittingEventArgs(JoyCon sourceJoyCon, SplittingType splittingType)
+        {
+            SourceJoyCon = sourceJoyCon;
+            SplittingType = splittingType;
+        }
+    }
+
+    internal enum SplittingType
+    {
+        ReadyToSplit,
+        CancelSplitting
     }
 
     internal class JoyConPairingEventArgs : EventArgs

@@ -56,9 +56,8 @@ namespace JoyConToPC.Core
 
                     var virtualJoystick = VirtualJoystickManager.GetVirtualJoystick((uint) player.Value);
 
-                    joyCon.Acquire(player.Value);
                     joyCon.DataUpdated += OnJoyConDataUpdate;
-                    joyCon.StartPolling();
+                    joyCon.Acquire(player.Value);
 
                     _virtualJoystickDict.Add(joyCon, virtualJoystick);
 
@@ -79,16 +78,12 @@ namespace JoyConToPC.Core
         private void OnRemoveJoyCon(IJoyCon joyCon)
         {
             Logger.Info("Removed JoyCon " + joyCon);
-
-            if (joyCon.IsPolling)
-            {
-                joyCon.StopPolling();
-            }
-            joyCon.DataUpdated -= OnJoyConDataUpdate;
+            
             if (joyCon.IsAcquired)
             {
                 joyCon.Unacquire();
             }
+            joyCon.DataUpdated -= OnJoyConDataUpdate;
 
             Console.WriteLine($"JoyCon State: {joyCon.IsAcquired}");
             _virtualJoystickDict[joyCon].Dispose();
