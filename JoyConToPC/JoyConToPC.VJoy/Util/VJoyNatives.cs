@@ -24,6 +24,9 @@ namespace JoyConToPC.VJoy.Util
 
         [DllImport("vJoyInterface.dll", EntryPoint = "UpdateVJD")]
         public static extern void SendData(uint deviceId, ref VJoyData value);
+
+        [DllImport("vJoyInterface.dll", EntryPoint = "isVJDOpen")]
+        public static extern bool IsVJoyOpen(uint deviceId);
     }
 
     internal enum VJoyState

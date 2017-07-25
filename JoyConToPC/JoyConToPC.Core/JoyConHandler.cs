@@ -51,22 +51,30 @@ namespace JoyConToPC.Core
             JoyConPlayer? player = JoyConPlayer.First;
             while (player != null)
             {
-                if (VirtualJoystickManager.IsVirtualJoystickUsable((uint) player.Value))
+                if (_virtualJoystickDict.Values.Any(vjoy => vjoy.DeviceId == (uint) player))
                 {
-                    Logger.Debug(">>> Register JoyCon as " + (uint) player.Value);
-
-                    var virtualJoystick = VirtualJoystickManager.GetVirtualJoystick((uint) player.Value, 
-                        joyCon is JoyCon ? VJoyDeviceProfile.Small : VJoyDeviceProfile.Full);
-
-                    joyCon.DataUpdated += OnJoyConDataUpdate;
-                    joyCon.Acquire(player.Value);
-
-                    _virtualJoystickDict.Add(joyCon, virtualJoystick);
-
-                    break;
+                    player = player.Value.Next();
+                    continue;
                 }
 
-                player = player.Value.Next();
+                var virtualJoystick = new VirtualJoystick((uint) player.Value,
+                    joyCon is JoyCon ? VJoyDeviceProfile.Small : VJoyDeviceProfile.Full);
+                if (virtualJoystick.UsageState != UsageState.Free)
+                {
+                    virtualJoystick.Dispose();
+                    player = player.Value.Next();
+                    continue;
+                }
+
+                Logger.Debug(">>> Register JoyCon as " + (uint) player.Value);
+
+                joyCon.DataUpdated += OnJoyConDataUpdate;
+                joyCon.Acquire(player.Value);
+
+                virtualJoystick.Aquire();
+                _virtualJoystickDict.Add(joyCon, virtualJoystick);
+
+                break;
             }
 
             if (player == null)
@@ -98,6 +106,15 @@ namespace JoyConToPC.Core
                 return;
 
             var virtualJoystick = _virtualJoystickDict[args.JoyConSource];
+            if (!virtualJoystick.IsAquired) //In case of driver restart
+            {
+                Logger.Debug("Re-Aquire virtual joystick " + virtualJoystick);
+                if (!virtualJoystick.Aquire())
+                {
+                    Logger.Warn("Unable to re-aquire virtual joystick " + virtualJoystick + "; ignore data update");
+                    return;
+                }
+            }
             virtualJoystick.SendData(args.JoyConState.ToVirtualJoystickData(args.JoyConSource));
         }
     }

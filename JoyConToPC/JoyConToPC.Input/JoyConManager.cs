@@ -63,7 +63,7 @@ namespace JoyConToPC.Input
                 while (!_cts.IsCancellationRequested)
                 {
                     OnConnectionTimerElapsed();
-                    Thread.Sleep(1000);
+                    Thread.Sleep(5000);
                 }
             }, _cts.Token);
         }
@@ -103,6 +103,8 @@ namespace JoyConToPC.Input
                     if (_rawJoyConList.Contains(joyCon))
                         continue;
 
+                    joyCon.SetupLeds(JoyConLed.FlashAll);
+
                     _rawJoyConList.Add(joyCon);
                     _singleJoyConList.Add(joyCon);
 
@@ -114,10 +116,12 @@ namespace JoyConToPC.Input
                 }
 
                 //Find all removed
-                foreach (var joyCon in _rawJoyConList)
+                foreach (var joyCon in new List<JoyCon>(_rawJoyConList))
                 {
                     if (availableJoyConList.Contains(joyCon))
                         continue;
+
+                    joyCon.SetupLeds(JoyConLed.FlashAll);
 
                     joyCon.Pairing -= OnJoyConPairing;
                     joyCon.Splitting -= OnJoyConSplitting;
@@ -170,6 +174,8 @@ namespace JoyConToPC.Input
                                        joyCon.LeftJoyCon.Equals(args.SourceJoyCon)));
                         if (joyConPair == null)
                             return;
+
+                        Logger.Debug("Start splitting of: " + args.SourceJoyCon + " and " + _readyToSplitJoyCon);
 
                         lock (ListMonitor)
                         {

@@ -66,10 +66,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Type\VirtualJoystickData.cs" />
     <Compile Include="Type\VJoyData.cs" />
+    <Compile Include="Util\Extension\NativeToPublicExtensions.cs" />
     <Compile Include="Util\VJoyConfig.cs" />
     <Compile Include="Util\VJoyNatives.cs" />
     <Compile Include="VirtualJoystick.cs" />
-    <Compile Include="VirtualJoystickManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

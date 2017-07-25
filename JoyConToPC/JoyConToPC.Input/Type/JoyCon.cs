@@ -112,7 +112,7 @@ namespace JoyConToPC.Input.Type
 
         public void SetupLeds(JoyConLed led)
         {
-            Logger.Info($"Set LED {led} to JoyCon {Guid}");
+            Logger.Debug($"Set LED {led} to JoyCon {Guid}");
 
             switch (led)
             {
@@ -143,7 +143,7 @@ namespace JoyConToPC.Input.Type
             if (IsDisposed)
                 throw new InvalidOperationException("Already disposed");
 
-            Logger.Info($"Set LEDs {firstLed}, {secondLed}, {thirdLed}, {fourthLed} to JoyCon {Guid}");
+            Logger.Debug($"Set LEDs {firstLed}, {secondLed}, {thirdLed}, {fourthLed} to JoyCon {Guid}");
 
             byte light = 0;
             CalculateLight(ref light, firstLed, 1);
@@ -170,7 +170,7 @@ namespace JoyConToPC.Input.Type
 
         public void Rumble(JoyConRumbleInfo rumbleInfo)
         {
-            Logger.Info($"Rumble JoyCon {Guid}");
+            Logger.Debug($"Rumble JoyCon {Guid}");
 
             //TODO: Rumble not work
             byte[] buf = new byte[0x9];
@@ -205,6 +205,8 @@ namespace JoyConToPC.Input.Type
             if (IsPaired)
                 throw new InvalidOperationException("Already paired");
 
+            Logger.Info("Pairing " + joyCon + " with " + this);
+
             PairedJoyCon = joyCon;
             joyCon.PairedJoyCon = this;
         }
@@ -217,6 +219,8 @@ namespace JoyConToPC.Input.Type
             if (!IsPaired)
                 throw new InvalidOperationException("Not paired yet");
 
+            Logger.Info("Unpairing " + PairedJoyCon + " from " + this);
+
             PairedJoyCon.PairedJoyCon = null;
             PairedJoyCon = null;
         }
@@ -228,7 +232,7 @@ namespace JoyConToPC.Input.Type
             if (IsDisposed)
                 throw new InvalidOperationException("Already disposed");
 
-            Logger.Info($"Dispose JoyCon {Guid}");
+            Logger.Debug($"Dispose JoyCon {Guid}");
 
             if (IsAcquired)
             {

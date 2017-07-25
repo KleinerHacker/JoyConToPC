@@ -11,6 +11,7 @@ namespace JoyConToPC.VJoy.Util
     internal static class VJoyConfig
     {
         private static ILog Logger { get; } = LogManager.GetLogger(typeof(VJoyConfig));
+        private const int WaitForProcess = 3000;
 
         public static void CreateDevice(uint id, VJoyDeviceProfile profile)
         {
@@ -35,7 +36,7 @@ namespace JoyConToPC.VJoy.Util
                 case VJoyDeviceProfile.Full:
                     process = new Process
                     {
-                        StartInfo = new ProcessStartInfo("vJoyConfig.exe", id + " -f - a x y z -b 10 -p 4")
+                        StartInfo = new ProcessStartInfo("vJoyConfig.exe", id + " -f - a x y z -b 10 -s 1")
                         {
                             Verb = "runas",
                             CreateNoWindow = true,
@@ -49,7 +50,7 @@ namespace JoyConToPC.VJoy.Util
             }
 
             process.Start();
-            if (!process.WaitForExit(10000))
+            if (!process.WaitForExit(WaitForProcess))
             {
                 process.Kill();
             }
@@ -78,7 +79,7 @@ namespace JoyConToPC.VJoy.Util
                 }
             };
             process.Start();
-            if (!process.WaitForExit(10000))
+            if (!process.WaitForExit(WaitForProcess))
             {
                 process.Kill();
             }
