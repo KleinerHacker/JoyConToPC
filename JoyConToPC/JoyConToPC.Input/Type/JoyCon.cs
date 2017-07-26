@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using HidLibrary;
+using JoyConToPC.Common.Type;
 using JoyConToPC.Input.Util;
 using JoyConToPC.Input.Util.Extension;
 using log4net;

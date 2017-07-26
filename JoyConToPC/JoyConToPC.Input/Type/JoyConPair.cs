@@ -1,4 +1,5 @@
 ﻿using System;
+using JoyConToPC.Common.Type;
 
 namespace JoyConToPC.Input.Type
 {

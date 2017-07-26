@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
+using JoyConToPC.Common.Type;
 using JoyConToPC.Input.Type;
 using log4net;
 using Timer = System.Timers.Timer;

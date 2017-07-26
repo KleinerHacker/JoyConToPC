@@ -129,6 +129,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\JoyConToPC.Common\JoyConToPC.Common.csproj">
+      <Project>{c849da12-577f-4185-8fa7-c92375cdb466}</Project>
+      <Name>JoyConToPC.Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\JoyConToPC.Core\JoyConToPC.Core.csproj">
       <Project>{887857be-1afe-4df1-8540-641ec439c094}</Project>
       <Name>JoyConToPC.Core</Name>

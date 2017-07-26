@@ -1,4 +1,5 @@
 ﻿using System;
+using JoyConToPC.Common.Type;
 using JoyConToPC.Input.Type;
 using JoyConToPC.Input.Util;
 using JoyConToPC.VJoy.Type;

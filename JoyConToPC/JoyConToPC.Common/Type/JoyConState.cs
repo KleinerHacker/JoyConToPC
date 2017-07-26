@@ -1,29 +1,24 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using JoyConToPC.Input.Util;
 
-namespace JoyConToPC.Input.Type
+namespace JoyConToPC.Common.Type
 {
     [Serializable]
     public abstract class JoyConState
     {
-        public bool SideLeftButton { get; internal set; }
-        public bool SideRightButton { get; internal set; }
+        public bool SideLeftButton { get; set; }
+        public bool SideRightButton { get; set; }
 
-        public bool BackButton { get; internal set; }
-        public bool RearBackButton { get; internal set; }
+        public bool BackButton { get; set; }
+        public bool RearBackButton { get; set; }
 
-        public bool StickButton { get; internal set; }
+        public bool StickButton { get; set; }
 
-        public int RawStickHorizontal { get; internal set; }
-        public int RawStickVertical { get; internal set; }
+        public int RawStickHorizontal { get; set; }
+        public int RawStickVertical { get; set; }
         public int StickHorizontal => RawStickHorizontal - 128;
         public int StickVertical => RawStickVertical - 128;
             
-        public int BatteryState { get; internal set; }
+        public int BatteryState { get; set; }
 
         #region Equals / Hashcode
 
@@ -67,13 +62,13 @@ namespace JoyConToPC.Input.Type
     [Serializable]
     public sealed class JoyConLeftState : JoyConState
     {
-        public bool ButtonDown { get; internal set; }
-        public bool ButtonUp { get; internal set; }
-        public bool ButtonRight { get; internal set; }
-        public bool ButtonLeft { get; internal set; }
+        public bool ButtonDown { get; set; }
+        public bool ButtonUp { get; set; }
+        public bool ButtonRight { get; set; }
+        public bool ButtonLeft { get; set; }
 
-        public bool MinusButton { get; internal set; }
-        public bool CaptureButton { get; internal set; }
+        public bool MinusButton { get; set; }
+        public bool CaptureButton { get; set; }
 
         #region Equals / Hashcode
 
@@ -115,13 +110,13 @@ namespace JoyConToPC.Input.Type
     [Serializable]
     public sealed class JoyConRightState : JoyConState
     {
-        public bool ButtonY { get; internal set; }
-        public bool ButtonX { get; internal set; }
-        public bool ButtonB { get; internal set; }
-        public bool ButtonA { get; internal set; }
+        public bool ButtonY { get; set; }
+        public bool ButtonX { get; set; }
+        public bool ButtonB { get; set; }
+        public bool ButtonA { get; set; }
 
-        public bool PlusButton { get; internal set; }
-        public bool HomeButton { get; internal set; }
+        public bool PlusButton { get; set; }
+        public bool HomeButton { get; set; }
 
         #region Equals / Hashcode
 

@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 
-namespace JoyConToPC.Input.Type
+namespace JoyConToPC.Common.Type
 {
     public interface IJoyCon : IDisposable
     {

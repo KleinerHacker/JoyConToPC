@@ -70,6 +70,10 @@
     <Compile Include="Util\JoyConConstants.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\JoyConToPC.Common\JoyConToPC.Common.csproj">
+      <Project>{c849da12-577f-4185-8fa7-c92375cdb466}</Project>
+      <Name>JoyConToPC.Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\JoyConToPC.Input\JoyConToPC.Input.csproj">
       <Project>{e72bdb8d-362d-4f15-a6f2-e02e699b09f8}</Project>
       <Name>JoyConToPC.Input</Name>
