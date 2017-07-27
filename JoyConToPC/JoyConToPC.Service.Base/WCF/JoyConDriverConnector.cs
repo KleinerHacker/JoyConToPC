@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.ServiceModel;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ServiceModel;
 using JoyConToPC.API;
 using JoyConToPC.API.Type;
 
-namespace JoyConToPC.Service.WCF
+namespace JoyConToPC.Service.Base.WCF
 {
     [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single)]
     public class JoyConDriverConnector : IJoyConDriverConnector

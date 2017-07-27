@@ -9,45 +9,30 @@ using System.ServiceProcess;
 using System.Text;
 using System.Threading.Tasks;
 using JoyConToPC.Core;
-using JoyConToPC.Service.WCF;
+using JoyConToPC.Service.Base;
 using log4net;
+using log4net.Config;
 
 namespace JoyConToPC.Service
 {
     public partial class JoyConService : ServiceBase
     {
-        private static ILog Logger { get; } = LogManager.GetLogger(typeof(JoyConService));
-
-        private JoyConDriver _driver;
-        private ServiceHost _connectorHost;
+        private readonly JoyConServiceWrapper _serviceWrapper = new JoyConServiceWrapper();
 
         public JoyConService()
         {
             InitializeComponent();
+            BasicConfigurator.Configure();
         }
 
         protected override void OnStart(string[] args)
         {
-            Logger.Info("Startup JoyCon Service...");
-
-            Logger.Debug("Startup JoyCon Driver");
-            _driver = JoyConDriver.Instance;
-
-            Logger.Debug("Startup JoyCon Driver Connector");
-            _connectorHost = ServiceFactory.CreateJoyConDriverConnector();
-            _connectorHost.Open();
+            _serviceWrapper.StartServiceWrapper();
         }
 
         protected override void OnStop()
         {
-            Logger.Info("Stop JoyCon Service...");
-
-            Logger.Debug("Stop JoyCon Driver");
-            _driver = null;
-
-            Logger.Debug("Stop JoyCon Driver Connector");
-            _connectorHost.Close();
-            _connectorHost = null;
+            _serviceWrapper.StopServiceWrapper();
         }
     }
 }
