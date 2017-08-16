@@ -65,7 +65,7 @@
   <ItemGroup>
     <Compile Include="JoyConServiceWrapper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="WCF\JoyConDriverConnector.cs" />
+    <Compile Include="WCF\JoyConDriverConnectorService.cs" />
     <Compile Include="WCF\ServiceFactory.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -80,6 +80,10 @@
     <ProjectReference Include="..\JoyConToPC.Core\JoyConToPC.Core.csproj">
       <Project>{887857be-1afe-4df1-8540-641ec439c094}</Project>
       <Name>JoyConToPC.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\JoyConToPC.Input\JoyConToPC.Input.csproj">
+      <Project>{E72BDB8D-362D-4F15-A6F2-E02E699B09F8}</Project>
+      <Name>JoyConToPC.Input</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

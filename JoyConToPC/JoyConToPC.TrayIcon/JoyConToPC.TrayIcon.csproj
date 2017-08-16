@@ -58,6 +58,8 @@
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
@@ -81,6 +83,14 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="UI\ControllerBase.cs" />
+    <Compile Include="UI\ModelBase.cs" />
+    <Compile Include="UI\Window\JoyConOverviewWindow.xaml.cs">
+      <DependentUpon>JoyConOverviewWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Window\JoyConOverviewWindowController.cs" />
+    <Compile Include="UI\Window\JoyConOverviewWindowModel.cs" />
+    <Compile Include="WCF\JoyConDriverConnectorClient.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs">
@@ -111,6 +121,22 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\CP050.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\JoyConToPC.API\JoyConToPC.API.csproj">
+      <Project>{2E9CD0CE-7129-4FE1-A2D8-2B2DBEB65090}</Project>
+      <Name>JoyConToPC.API</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\JoyConToPC.Common\JoyConToPC.Common.csproj">
+      <Project>{C849DA12-577F-4185-8FA7-C92375CDB466}</Project>
+      <Name>JoyConToPC.Common</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="UI\Window\JoyConOverviewWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

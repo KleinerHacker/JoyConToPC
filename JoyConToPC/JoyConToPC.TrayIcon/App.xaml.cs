@@ -6,8 +6,12 @@ using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Forms;
+using JoyConToPC.TrayIcon.UI.Window;
 using Application = System.Windows.Application;
+using ContextMenu = System.Windows.Forms.ContextMenu;
+using MenuItem = System.Windows.Forms.MenuItem;
 
 namespace JoyConToPC.TrayIcon
 {
@@ -25,7 +29,9 @@ namespace JoyConToPC.TrayIcon
                 Icon = TrayIcon.Properties.Resources.CP050,
                 Text = "JoyCon Driver",
                 ContextMenu = new ContextMenu(new [] {
-                    new MenuItem("Exit", (sender, args) => Shutdown(0)), 
+                    new MenuItem("Open JoyCon List...", (sender, args) => new JoyConOverviewWindow().Show()), 
+                    new MenuItem("-"), 
+                    new MenuItem("Exit", (sender, args) => Shutdown(0)),  
                 })
             };
         }

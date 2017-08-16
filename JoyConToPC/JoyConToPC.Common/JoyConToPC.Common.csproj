@@ -64,6 +64,7 @@
     <Compile Include="Type\JoyConPlayer.cs" />
     <Compile Include="Type\JoyConRumble.cs" />
     <Compile Include="Type\JoyConState.cs" />
+    <Compile Include="Util\Constant\NetworkConstants.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
